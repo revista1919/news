@@ -992,26 +992,26 @@ function generateNewsHtmlTemplate({
       ${content}
     </article>
 
-    <div class="action-bar">
-      <div class="share-buttons">
-        <button class="share-btn" onclick="shareOnTwitter()" title="Twitter">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
-          </svg>
-        </button>
-        <button class="share-btn" onclick="shareOnFacebook()" title="Facebook">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-          </svg>
-        </button>
-        <button class="share-btn" onclick="shareOnLinkedIn()" title="LinkedIn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
-            <rect x="2" y="9" width="4" height="12"/>
-            <circle cx="4" cy="4" r="2"/>
-          </svg>
-        </button>
-      </div>
+    // En la parte del template donde están los botones de compartir, reemplaza con:
+<div class="share-buttons">
+  <button class="share-btn" onclick="shareOnTwitter()" title="Twitter">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+    </svg>
+  </button>
+  <button class="share-btn" onclick="shareOnFacebook()" title="Facebook">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+    </svg>
+  </button>
+  <button class="share-btn" onclick="shareOnLinkedIn()" title="LinkedIn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+      <rect x="2" y="9" width="4" height="12"/>
+      <circle cx="4" cy="4" r="2"/>
+    </svg>
+  </button>
+</div>
       <span class="oa-label">
         ${oaSvg}
         Open Access
@@ -1176,21 +1176,23 @@ function generateNewsHtmlTemplate({
     });
 
     // ========== FUNCIONES DE COMPARTIR ==========
-    function shareOnTwitter() {
-      const url = encodeURIComponent(window.location.href);
-      const text = encodeURIComponent("${title}");
-      window.open(\`https://twitter.com/intent/tweet?url=\${url}&text=\${text}\`, '_blank');
-    }
+    // ========== FUNCIONES DE COMPARTIR CORREGIDAS ==========
+// ========== FUNCIONES DE COMPARTIR ==========
+function shareOnTwitter() {
+  const url = encodeURIComponent(window.location.href);
+  const text = encodeURIComponent("${title.replace(/'/g, "\\'")}");
+  window.open("https://twitter.com/intent/tweet?url=" + url + "&text=" + text, "_blank");
+}
 
-    function shareOnFacebook() {
-      const url = encodeURIComponent(window.location.href);
-      window.open(\`https://www.facebook.com/sharer/sharer.php?u=\${url}\`, '_blank');
-    }
+function shareOnFacebook() {
+  const url = encodeURIComponent(window.location.href);
+  window.open("https://www.facebook.com/sharer/sharer.php?u=" + url, "_blank");
+}
 
-    function shareOnLinkedIn() {
-      const url = encodeURIComponent(window.location.href);
-      window.open(\`https://www.linkedin.com/sharing/share-offsite/?url=\${url}\`, '_blank');
-    }
+function shareOnLinkedIn() {
+  const url = encodeURIComponent(window.location.href);
+  window.open("https://www.linkedin.com/sharing/share-offsite/?url=" + url, "_blank");
+}
 
     // Smooth scroll para enlaces internos
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
