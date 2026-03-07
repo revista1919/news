@@ -360,7 +360,7 @@ function generateNewsHtmlTemplate({
   <meta property="og:type" content="article">
   <meta property="article:published_time" content="${fecha}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="language" content="<?php echo $lang; ?>">
+  <meta name="language" content="${lang}">
   <title>${title} - ${isSpanish ? 'Noticias' : 'News'} - ${journalName}</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -1024,7 +1024,6 @@ function generateNewsHtmlTemplate({
     <div class="progress-bar" id="progressBar"></div>
   </div>
 
-  <!-- Audio Player Flotante -->
   <!-- Audio Player Flotante con mejoras -->
 <div class="audio-player" id="audioPlayer">
   <div class="audio-controls">
@@ -1223,18 +1222,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   let utterance = null;
   let isPlaying = false;
-  let isPaused = false;
   let voicesReady = false;
   let selectedVoice = null;
   let synthesis = window.speechSynthesis;
-  let restartTimeout = null;
-  let currentPosition = 0;
-  let wordCount = 0;
-  let updateInterval = null;
+  let currentCharIndex = 0;
+  let fullText = '';
+  let rate = 1;
+  let resumeTimer = null;
 
   // Obtener el texto del artículo con validación
-  const articleContent = articleContentEl.innerText || articleContentEl.textContent || '';
-  const totalWords = articleContent.trim() ? articleContent.split(/\s+/).length : 0;
+  fullText = (articleContentEl.innerText || articleContentEl.textContent || '').trim();
+  const totalChars = fullText.length;
 
   // Configurar idioma - DETECCIÓN INMUNE A ERRORES
   let lang = 'es'; // Valor por defecto
@@ -1352,11 +1350,11 @@ document.addEventListener('DOMContentLoaded', function() {
   function selectVoice(voices) {
     if (!voices || voices.length === 0) return;
     
-    // Intentar encontrar una voz premium de Google
-    selectedVoice = voices.find(voice => voice.lang === voiceLang && voice.name && voice.name.includes('Google'));
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.lang === voiceLang);
-    }
+    // Priorizar voz exacta del idioma
+    selectedVoice = voices.find(voice => voice.lang === voiceLang && voice.name && voice.name.includes('Google')) ||
+                    voices.find(voice => voice.lang === voiceLang && voice.name && voice.name.includes('Premium')) ||
+                    voices.find(voice => voice.lang === voiceLang);
+    
     if (!selectedVoice) {
       selectedVoice = voices.find(voice => voice.default);
     }
@@ -1371,173 +1369,166 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Voz seleccionada:', selectedVoice ? selectedVoice.name : 'Default');
   }
 
-  // Evento para cambiar la voz
-  if (voiceSelector) {
-    voiceSelector.addEventListener('change', (e) => {
-      const voiceName = e.target.value;
-      if (!voiceName) {
-        selectedVoice = null;
-      } else {
-        const voices = synthesis.getVoices();
-        selectedVoice = voices.find(v => v.name === voiceName);
-      }
-      
-      // Si hay una reproducción activa, reiniciar con la nueva voz
-      if (isPlaying || isPaused) {
-        const wasPlaying = isPlaying;
-        const wasPaused = isPaused;
-        
-        cleanup();
-        
-        if (wasPlaying || wasPaused) {
-          utterance = createUtterance();
-          if (utterance) synthesis.speak(utterance);
-        }
-      }
-    });
-  }
-
-  // Control de velocidad
-  if (rateControl && rateValue) {
-    rateControl.addEventListener('input', (e) => {
-      const rate = parseFloat(e.target.value) || 1;
-      rateValue.textContent = rate.toFixed(1) + 'x';
-      
-      if (utterance) {
-        utterance.rate = rate;
-      }
-    });
-  }
-
-  function cleanup() {
-    if (synthesis && synthesis.speaking) {
+  // Limpiar reproducción
+  function stopSpeech() {
+    if (synthesis) {
       synthesis.cancel();
     }
-    if (restartTimeout) {
-      clearTimeout(restartTimeout);
-      restartTimeout = null;
+    if (resumeTimer) {
+      clearTimeout(resumeTimer);
+      resumeTimer = null;
     }
-    if (updateInterval) {
-      clearInterval(updateInterval);
-      updateInterval = null;
+    utterance = null;
+    isPlaying = false;
+    updateUI();
+  }
+
+  // Crear nueva utterance desde posición actual
+  function createUtteranceFromPosition() {
+    if (!fullText || currentCharIndex >= totalChars) {
+      return null;
     }
-    if (audioProgressBar) {
-      audioProgressBar.style.width = '0%';
+
+    const remainingText = fullText.substring(currentCharIndex);
+    if (!remainingText.trim()) {
+      return null;
+    }
+
+    const newUtterance = new SpeechSynthesisUtterance(remainingText);
+    newUtterance.lang = voiceLang;
+
+    if (selectedVoice) {
+      newUtterance.voice = selectedVoice;
+    }
+
+    newUtterance.rate = rate;
+    newUtterance.pitch = 1;
+    newUtterance.volume = 1;
+
+    // Eventos
+    newUtterance.onstart = () => {
+      isPlaying = true;
+      updateUI();
+    };
+
+    newUtterance.onend = () => {
+      isPlaying = false;
+      currentCharIndex = totalChars;
+      updateProgress();
+      updateUI();
+    };
+
+    newUtterance.onboundary = (event) => {
+      if (event.name === 'word' || event.name === 'sentence') {
+        currentCharIndex += event.charIndex + (event.name === 'word' ? event.charLength || 1 : 0);
+        updateProgress();
+      }
+    };
+
+    newUtterance.onerror = (event) => {
+      console.error('Error en reproducción:', event.error);
+      isPlaying = false;
+      updateUI();
+    };
+
+    return newUtterance;
+  }
+
+  // Iniciar o reanudar reproducción
+  function playSpeech() {
+    stopSpeech();
+
+    utterance = createUtteranceFromPosition();
+    if (utterance) {
+      synthesis.speak(utterance);
+      isPlaying = true;
+      updateUI();
     }
   }
 
-  function createUtterance() {
-    if (!articleContent) {
-      console.warn('No hay contenido para reproducir');
-      return null;
-    }
-    
-    cleanup();
-    
-    try {
-      const newUtterance = new SpeechSynthesisUtterance(articleContent);
-      
-      if (selectedVoice) {
-        newUtterance.voice = selectedVoice;
-      } else {
-        newUtterance.lang = voiceLang;
-      }
-      
-      newUtterance.rate = rateControl ? parseFloat(rateControl.value) || 1 : 1;
-      newUtterance.pitch = 1;
-      newUtterance.volume = 1;
-      
-      newUtterance.onstart = () => {
-        isPlaying = true;
-        isPaused = false;
-        if (statusText) statusText.innerText = lang === 'es' ? 'Reproduciendo...' : 'Playing...';
-        if (playIcon) playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-        
-        // Iniciar actualización del progreso
-        wordCount = 0;
-        if (updateInterval) clearInterval(updateInterval);
-        updateInterval = setInterval(() => {
-          if (isPlaying && totalWords > 0 && audioProgressBar) {
-            const progress = (wordCount / totalWords) * 100;
-            audioProgressBar.style.width = Math.min(progress, 100) + '%';
-          }
-        }, 100);
-      };
-      
-      newUtterance.onboundary = (event) => {
-        if (event.name === 'word') {
-          wordCount++;
-          currentPosition = event.charIndex;
-        }
-      };
-      
-      newUtterance.onpause = () => {
-        isPlaying = false;
-        isPaused = true;
-        if (statusText) statusText.innerText = lang === 'es' ? 'Pausado' : 'Paused';
-        if (playIcon) playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-      };
-      
-      newUtterance.onresume = () => {
-        isPlaying = true;
-        isPaused = false;
-        if (statusText) statusText.innerText = lang === 'es' ? 'Reproduciendo...' : 'Playing...';
-        if (playIcon) playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-      };
-      
-      newUtterance.onend = () => {
-        isPlaying = false;
-        isPaused = false;
-        utterance = null;
-        if (statusText) statusText.innerText = lang === 'es' ? 'Escuchar noticia' : 'Listen to article';
-        if (playIcon) playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-        if (audioProgressBar) {
-          audioProgressBar.style.width = '100%';
-          
-          setTimeout(() => {
-            if (audioProgressBar) audioProgressBar.style.width = '0%';
-          }, 500);
-        }
-        
-        if (updateInterval) {
-          clearInterval(updateInterval);
-          updateInterval = null;
-        }
-      };
-      
-      newUtterance.onerror = (event) => {
-        console.error('Speech error:', event);
-        
-        if (event.error === 'interrupted' || event.error === 'canceled') {
-          return;
-        }
-        
-        isPlaying = false;
-        isPaused = false;
-        utterance = null;
-        if (statusText) statusText.innerText = lang === 'es' ? 'Error - intenta de nuevo' : 'Error - try again';
-        if (playIcon) playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-        
-        setTimeout(() => {
-          loadVoices();
-          if (statusText) statusText.innerText = lang === 'es' ? 'Listo' : 'Ready';
-        }, 1000);
-      };
-      
-      return newUtterance;
-    } catch (e) {
-      console.error('Error al crear utterance:', e);
-      return null;
+  // Pausar (simulado con cancel)
+  function pauseSpeech() {
+    if (isPlaying) {
+      stopSpeech();
+      isPlaying = false;
+      updateUI();
     }
   }
+
+  // Toggle play/pause
+  function togglePlayPause() {
+    if (isPlaying) {
+      pauseSpeech();
+    } else {
+      playSpeech();
+    }
+  }
+
+  // Actualizar UI - VERSIÓN CORREGIDA
+function updateUI() {
+  if (statusText) {
+    statusText.innerText = isPlaying ? (lang === 'es' ? 'Reproduciendo...' : 'Playing...') : t.listen;
+  }
+  if (playIcon) {
+    // CORREGIDO: Usamos String() para asegurar compatibilidad
+    playIcon.innerHTML = isPlaying ? 
+      String('<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>') : 
+      String('<path d="M8 5v14l11-7z"/>');
+  }
+}
+
+  // Actualizar progreso
+  // Actualizar progreso - VERSIÓN CORREGIDA
+function updateProgress() {
+  if (audioProgressBar && totalChars > 0) {
+    const progress = (currentCharIndex / totalChars) * 100;
+    // CORREGIDO: Usamos String() para asegurar compatibilidad
+    audioProgressBar.style.width = String(Math.min(progress, 100)) + '%';
+  }
+}
+
+  // Evento para cambiar la voz
+  voiceSelector.addEventListener('change', (e) => {
+    const voiceName = e.target.value;
+    const voices = synthesis.getVoices();
+    selectedVoice = voiceName ? voices.find(v => v.name === voiceName) : null;
+
+    if (isPlaying) {
+      const wasPlaying = true;
+      pauseSpeech();
+      if (wasPlaying) {
+        playSpeech();
+      }
+    }
+  });
+
+  // Control de velocidad - VERSIÓN CORREGIDA
+if (rateControl) {
+  rateControl.addEventListener('input', function(e) {
+    rate = parseFloat(e.target.value) || 1;
+    
+    // CORREGIDO: Evitamos template string con formato numérico
+    if (rateValue) {
+      // Método 1: Concatenación tradicional
+      rateValue.textContent = rate.toFixed(1) + 'x';
+      
+      // Método 2: Si prefieres mantener el formato, usa String() primero
+      // rateValue.textContent = String(rate.toFixed(1)) + 'x';
+    }
+
+    if (isPlaying) {
+      // Simplificado: no necesitas variable wasPlaying
+      pauseSpeech();
+      playSpeech(); // Directamente, porque pauseSpeech() ya cambia isPlaying a false
+    }
+  });
+}
 
   // Toggle controles avanzados
-  if (toggleAdvancedBtn && audioPlayer) {
-    toggleAdvancedBtn.addEventListener('click', () => {
-      audioPlayer.classList.toggle('expanded');
-      toggleAdvancedBtn.classList.toggle('active');
-    });
-  }
+  toggleAdvancedBtn.addEventListener('click', () => {
+    audioPlayer.classList.toggle('expanded');
+    toggleAdvancedBtn.classList.toggle('active');
+  });
 
   // Inicializar voces
   if (synthesis) {
@@ -1548,60 +1539,32 @@ document.addEventListener('DOMContentLoaded', function() {
     console.warn('Speech synthesis no soportado en este navegador');
   }
 
-  // Evento del botón play/pausa
-  if (playPauseBtn) {
-    playPauseBtn.addEventListener('click', async () => {
-      if (!synthesis) {
-        alert('Tu navegador no soporta texto a voz');
-        return;
-      }
-      
-      if (!voicesReady) {
-        if (statusText) statusText.innerText = lang === 'es' ? 'Cargando...' : 'Loading...';
-        await loadVoices();
-      }
-      
-      if (!utterance || (!synthesis.speaking && !isPaused)) {
-        utterance = createUtterance();
-        if (utterance) synthesis.speak(utterance);
-      } else if (isPlaying) {
-        synthesis.pause();
-      } else if (isPaused) {
-        synthesis.resume();
-      }
-    });
-  }
+  // Evento del botón play/pause
+  playPauseBtn.addEventListener('click', async () => {
+    if (!synthesis) {
+      alert('Tu navegador no soporta texto a voz');
+      return;
+    }
+    
+    if (!voicesReady) {
+      if (statusText) statusText.innerText = lang === 'es' ? 'Cargando...' : 'Loading...';
+      await loadVoices();
+    }
+    
+    togglePlayPause();
+  });
 
   // Evento del botón stop
-  if (stopBtn) {
-    stopBtn.addEventListener('click', () => {
-      cleanup();
-      utterance = null;
-      isPlaying = false;
-      isPaused = false;
-      wordCount = 0;
-      if (statusText) statusText.innerText = lang === 'es' ? 'Escuchar noticia' : 'Listen to article';
-      if (playIcon) playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-    });
-  }
+  stopBtn.addEventListener('click', () => {
+    currentCharIndex = 0;
+    stopSpeech();
+    updateProgress();
+  });
 
   // Limpiar al salir
-  window.addEventListener('beforeunload', cleanup);
+  window.addEventListener('beforeunload', stopSpeech);
 
-  // Workaround para bug de Chromium
-  setInterval(() => {
-    if (synthesis && synthesis.speaking && !isPlaying && !isPaused) {
-      cleanup();
-      utterance = null;
-    }
-  }, 5000);
-
-  // Recargar voces periódicamente
-  setInterval(() => {
-    if (synthesis && !synthesis.speaking && !isPlaying && !isPaused) {
-      loadVoices();
-    }
-  }, 60000);
+  // Workaround para bug de resume en algunos navegadores (llamar resume periódicamente si pausado, pero como usamos cancel, no necesario)
 });
 
 // ========== FUNCIONES DE COMPARTIR ==========
