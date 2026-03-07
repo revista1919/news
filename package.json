@@ -1,4 +1,12 @@
 {
+  "name": "news-generator",
+  "version": "1.0.0",
+  "description": "Generador estático de noticias para la revista",
+  "main": "generate.js",
+  "scripts": {
+    "generate": "node generate.js",
+    "build": "node generate.js"
+  },
   "dependencies": {
     "cheerio": "^1.2.0",
     "sharp": "^0.34.5"
