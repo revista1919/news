@@ -810,7 +810,24 @@ function generateNewsHtmlTemplate({
       font-size: 0.9rem;
       margin: 2rem 0;
     }
+/* Control de visibilidad para enlaces de contacto */
+@media (min-width: 769px) {
+  .desktop-only {
+    display: inline-block;
+  }
+  .mobile-only {
+    display: none;
+  }
+}
 
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none;
+  }
+  .mobile-only {
+    display: inline-block;
+  }
+}
     /* Action Bar */
     .action-bar {
       display: flex;
@@ -1166,24 +1183,24 @@ function generateNewsHtmlTemplate({
       </div>
 
       <!-- Contacto (abre Gmail directamente) -->
-      <div class="footer-contact">
-        <span class="contact-label">${t.contact}</span>
-        
-        <!-- Versión para escritorio (Gmail) - visible solo en pantallas grandes -->
-        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@revistacienciasestudiantes.com" 
-           target="_blank" 
-           class="contact-email desktop-only"
-           rel="noopener">
-          contact@revistacienciasestudiantes.com
-        </a>
-        
-        <!-- Versión para móvil (mailto) - visible solo en pantallas pequeñas -->
-        <a href="mailto:contact@revistacienciasestudiantes.com" 
-           class="contact-email mobile-only"
-           rel="noopener">
-          contact@revistacienciasestudiantes.com
-        </a>
-      </div>
+<div class="footer-contact">
+  <span class="contact-label">${t.contact}</span>
+  
+  <!-- Versión para escritorio (Gmail) - visible solo en pantallas grandes -->
+  <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@revistacienciasestudiantes.com" 
+     target="_blank" 
+     class="contact-email desktop-only"
+     rel="noopener">
+    contact@revistacienciasestudiantes.com
+  </a>
+  
+  <!-- Versión para móvil (mailto) - visible solo en pantallas pequeñas -->
+  <a href="mailto:contact@revistacienciasestudiantes.com" 
+     class="contact-email mobile-only"
+     rel="noopener">
+    contact@revistacienciasestudiantes.com
+  </a>
+</div>
 
       <!-- Copyright y enlaces legales - MODIFICADO CON SUFIJO DE IDIOMA -->
       <div class="footer-bottom">
@@ -1198,6 +1215,7 @@ function generateNewsHtmlTemplate({
       </div>
     </div>
   </footer>
+  
   <script>
     // ========== PROGRESS BAR ==========
     window.addEventListener('scroll', () => {
