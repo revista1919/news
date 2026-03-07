@@ -137,7 +137,6 @@ const oaSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 53" width
 </svg>`;
 
 // ========== FUNCIÓN PRINCIPAL ==========
-// ========== FUNCIÓN PRINCIPAL MODIFICADA ==========
 async function generateNews() {
   console.log('🚀 Iniciando generación de noticias estáticas...');
   console.log('📁 Directorio de salida:', OUTPUT_HTML_DIR);
@@ -167,7 +166,101 @@ async function generateNews() {
   }
 }
 
-// ========== REDES SOCIALES (del footer anterior) ==========
+async function generateNewsHtml(item) {
+  // Decodificar contenidos
+  const cuerpoDecoded = base64DecodeUnicode(item.cuerpo);
+  const contentDecoded = base64DecodeUnicode(item.content);
+  
+  // Generar slug
+  const slug = item.slug || generateSlug(`${item.titulo} ${item.fecha}`);
+  
+  console.log(`📝 Procesando: ${item.titulo} (${slug})`);
+
+  // Procesar imágenes en el contenido
+  const processedCuerpo = await processImages(cuerpoDecoded, slug, 'es');
+  const processedContent = await processImages(contentDecoded, slug, 'en');
+
+  // ========== HTML ESPAÑOL ==========
+  const headerImageHtmlEs = item.photo
+    ? `<div class="hero-header" style="background-image: url('${item.photo}')">
+         <div class="hero-overlay">
+           <div class="hero-content">
+             <span class="kicker">Noticias Académicas</span>
+             <h1>${item.titulo}</h1>
+             <div class="hero-meta">
+               <span class="author">Redacción Editorial</span> •
+               <span class="date">${formatDateEs(item.fecha)}</span>
+             </div>
+           </div>
+         </div>
+       </div>`
+    : `<div class="standard-header">
+         <span class="kicker">Noticias Académicas</span>
+         <h1>${item.titulo}</h1>
+         <div class="hero-meta" style="color: #666">
+           <span class="author">Redacción Editorial</span> •
+           <span class="date">${formatDateEs(item.fecha)}</span>
+         </div>
+       </div>`;
+
+  const htmlContentEs = generateNewsHtmlTemplate({
+    lang: 'es',
+    title: item.titulo,
+    content: processedCuerpo,
+    fecha: item.fecha,
+    slug,
+    headerImageHtml: headerImageHtmlEs,
+    domain: DOMAIN,
+    oaSvg,
+    journalName: JOURNAL_NAME_ES,
+    logo: LOGO_ES
+  });
+
+  const filePathEs = path.join(OUTPUT_HTML_DIR, `${slug}.html`);
+  fs.writeFileSync(filePathEs, htmlContentEs, 'utf8');
+  console.log(`  ✅ Español: ${slug}.html`);
+
+  // ========== HTML INGLÉS ==========
+  const headerImageHtmlEn = item.photo
+    ? `<div class="hero-header" style="background-image: url('${item.photo}')">
+         <div class="hero-overlay">
+           <div class="hero-content">
+             <span class="kicker">Academic News</span>
+             <h1>${item.title}</h1>
+             <div class="hero-meta">
+               <span class="author">Editorial Staff</span> •
+               <span class="date">${formatDateEn(item.fecha)}</span>
+             </div>
+           </div>
+         </div>
+       </div>`
+    : `<div class="standard-header">
+         <span class="kicker">Academic News</span>
+         <h1>${item.title}</h1>
+         <div class="hero-meta" style="color: #666">
+           <span class="author">Editorial Staff</span> •
+           <span class="date">${formatDateEn(item.fecha)}</span>
+         </div>
+       </div>`;
+
+  const htmlContentEn = generateNewsHtmlTemplate({
+    lang: 'en',
+    title: item.title,
+    content: processedContent,
+    fecha: item.fecha,
+    slug,
+    headerImageHtml: headerImageHtmlEn,
+    domain: DOMAIN,
+    oaSvg,
+    journalName: JOURNAL_NAME_EN,
+    logo: LOGO_EN
+  });
+
+  const filePathEn = path.join(OUTPUT_HTML_DIR, `${slug}.EN.html`);
+  fs.writeFileSync(filePathEn, htmlContentEn, 'utf8');
+  console.log(`  ✅ Inglés: ${slug}.EN.html`);
+}
+
 const socialLinks = {
   instagram: 'https://www.instagram.com/revistanacionalcienciae',
   youtube: 'https://www.youtube.com/@RevistaNacionaldelasCienciaspa',
