@@ -1467,16 +1467,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // Actualizar UI - VERSIÓN CORREGIDA
 function updateUI() {
   if (statusText) {
-    statusText.innerText = isPlaying ? (lang === 'es' ? 'Reproduciendo...' : 'Playing...') : t.listen;
+    // Usar lang directamente en lugar de t.listen
+    statusText.innerText = isPlaying ? (lang === 'es' ? 'Reproduciendo...' : 'Playing...') : (lang === 'es' ? 'Escuchar noticia' : 'Listen to article');
   }
   if (playIcon) {
-    // CORREGIDO: Usamos String() para asegurar compatibilidad
     playIcon.innerHTML = isPlaying ? 
       String('<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>') : 
       String('<path d="M8 5v14l11-7z"/>');
   }
 }
-
   // Actualizar progreso
   // Actualizar progreso - VERSIÓN CORREGIDA
 function updateProgress() {
