@@ -992,7 +992,7 @@ function generateNewsHtmlTemplate({
       ${content}
     </article>
 
-    // En la parte del template donde están los botones de compartir, reemplaza con:
+   
 <div class="share-buttons">
   <button class="share-btn" onclick="shareOnTwitter()" title="Twitter">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
