@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archivo de Noticias - Revista Nacional de las Ciencias para Estudiantes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #005a7d;
+      --text-main: #222222;
+      --text-light: #595959;
+      --border-color: #e5e7eb;
+      --bg-soft: #f8f9fa;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Lora', serif;
+      color: var(--text-main);
+      background-color: #f5f5f5;
+      line-height: 1.8;
+    }
+    .nav-minimal {
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      font-family: 'Inter', sans-serif;
+    }
+    .nav-logo {
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+    .main-wrapper {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 0 2rem;
+    }
+    .content-card {
+      background: white;
+      padding: 3rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      margin: 0 0 1rem;
+      line-height: 1.2;
+      color: var(--primary);
+    }
+    .description {
+      color: var(--text-light);
+      margin-bottom: 3rem;
+      font-size: 1.1rem;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 1rem;
+    }
+    .year-section {
+      margin-bottom: 3rem;
+    }
+    .year-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 2rem;
+      color: var(--primary);
+      margin: 0 0 1.5rem;
+      border-left: 4px solid var(--primary);
+      padding-left: 1rem;
+    }
+    .news-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .news-item {
+      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .news-item:hover {
+      background: var(--bg-soft);
+      transform: translateX(5px);
+      border-left: 4px solid var(--primary);
+    }
+    .news-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.5rem;
+      font-family: 'Playfair Display', serif;
+    }
+    .news-link:hover {
+      text-decoration: underline;
+    }
+    .news-meta {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-family: 'Inter', sans-serif;
+    }
+    .news-excerpt {
+      margin-top: 1rem;
+      color: var(--text-main);
+      font-size: 1rem;
+    }
+    footer {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      background: white;
+      border-top: 1px solid var(--border-color);
+    }
+    @media (max-width: 768px) {
+      .main-wrapper { padding: 0 1rem; }
+      .content-card { padding: 1.5rem; }
+      h1 { font-size: 2.2rem; }
+      .year-title { font-size: 1.6rem; }
+      .news-link { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-minimal">
+    <a href="/" class="nav-logo">REVISTA NACIONAL DE LAS CIENCIAS PARA ESTUDIANTES</a>
+    <div class="issn">ISSN: 3087-2839</div>
+  </nav>
+  <div class="main-wrapper">
+    <main class="content-card">
+      <h1>Archivo de Noticias</h1>
+      <p class="description">Todas las noticias de la revista, ordenadas por año de publicación.</p>
+      
+      
+      <section class="year-section">
+        <h2 class="year-title">2026</h2>
+        <ul class="news-list">
+          
+            <li class="news-item">
+              <a href="/news/que-pasa-con-los-que-el-sistema-abandona-2026-02-26.html" class="news-link">¿Qué pasa con los que el sistema abandona?</a>
+              <div class="news-meta">
+                <span class="date">25-02-2026</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">
+  
+    En Chile, miles de niños crecen con una ausencia que no siempre se nombra. No es abandono. No es muerte. Es prisión. Y, durante décadas, su hi...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/ya-tenemos-issn-2026-02-06.html" class="news-link">¡Ya tenemos ISSN!</a>
+              <div class="news-meta">
+                <span class="date">05-02-2026</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">
+  
+    Estimada comunidad:Nos complace anunciar que nuestra revista ya cuenta con ISSN. La Agencia Nacional de Investigación y Desarrollo de Chile (A...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/el-primer-volumen-de-la-revista-ya-disponible-2026-02-03.html" class="news-link">¡El primer volumen de la revista ya disponible!</a>
+              <div class="news-meta">
+                <span class="date">02-02-2026</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">
+  Estimada comunidad:
+  Nos complace anunciar la publicación del volumen oficial completo de la revista correspondiente al año 2025. Este número reún...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/mas-de-8-000-flores-y-un-origen-inesperado-los-secretos-que-esconde-el-reloj-de-vina-del-mar-2026-01-27.html" class="news-link">Más de 8.000 flores y un origen inesperado: Los secretos que esconde el Reloj de Viña del Mar</a>
+              <div class="news-meta">
+                <span class="date">26-01-2026</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">
+.article p {
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.article h2 {
+  margin: 2rem 0 1rem;
+}
+
+.article img {
+  display: block;
+  width: 100%;
+  h...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/dormir-para-vivir-mejor-un-nuevo-articulo-explica-la-ciencia-del-sueno-y-los-riesgos-de-no-descansar-2026-01-18.html" class="news-link">Dormir para vivir mejor: un nuevo artículo explica la ciencia del sueño y los riesgos de no descansar</a>
+              <div class="news-meta">
+                <span class="date">17-01-2026</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">¡Atención a todos!¡Ya puedes leer el último artículo publicado en nuestra revista!Título: El Sueño Humano y Sus Ciclos: Bases Neurobiológicas y Consec...</div>
+            </li>
+          
+        </ul>
+      </section>
+      
+      <section class="year-section">
+        <h2 class="year-title">2025</h2>
+        <ul class="news-list">
+          
+            <li class="news-item">
+              <a href="/news/como-llego-la-humanidad-hasta-aqui-un-nuevo-articulo-invita-a-repensar-nuestra-historia-2025-12-14.html" class="news-link">¿Cómo llegó la humanidad hasta aquí? Un nuevo artículo invita a repensar nuestra historia</a>
+              <div class="news-meta">
+                <span class="date">13-12-2025</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">¡Atención a todos!¡Ya puedes leer el último artículo publicado en nuestra revista!Título: Book Review “De animales a dioses: Breve historia de la huma...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/los-articulos-de-la-revista-en-google-academico-2025-12-04.html" class="news-link">¡Los artículos de la revista en Google Académico!</a>
+              <div class="news-meta">
+                <span class="date">03-12-2025</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">¡Tenemos más noticias!Como muchos ya saben, nuestra revista comenzó sus actividades hace poco, con la misión de impulsar el trabajo académico de estud...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/ya-esta-disponible-el-dossier-especial-de-nuestro-primer-volumen-2025-12-04.html" class="news-link">¡Ya está disponible el dossier especial de nuestro primer volumen!</a>
+              <div class="news-meta">
+                <span class="date">03-12-2025</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">¡Atención a todas y todos! ¡Ya está disponible el dossier especial de nuestro primer volumen!Durante estos últimos días hemos estado muy activos revis...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/nuevo-articulo-publicado-en-la-revista-nacional-de-las-ciencias-para-estudiantes-2025-11-28.html" class="news-link">¡Nuevo artículo publicado en la Revista Nacional de las Ciencias para Estudiantes!</a>
+              <div class="news-meta">
+                <span class="date">27-11-2025</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">¡Atención a todos los lectores y colaboradores!
+La Revista Nacional de las Ciencias para Estudiantes ha publicado un nuevo artículo que aborda un tema...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/el-primer-articulo-de-la-revista-nacional-de-las-ciencias-para-estudiantes-ya-esta-disponible-2025-11-16.html" class="news-link">¡El primer artículo de la Revista Nacional de las Ciencias para Estudiantes ya está disponible!</a>
+              <div class="news-meta">
+                <span class="date">15-11-2025</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">&nbsp;¡Atención a todos!¡El primer artículo de la Revista Nacional de las Ciencias para Estudiantes ya está disponible!Título: Impacto Sociodemográfic...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/buenas-noticias-mario-ramirez-se-une-a-nuestra-revista-2025-10-11.html" class="news-link">¡Buenas noticias! Mario Ramírez se une a nuestra revista</a>
+              <div class="news-meta">
+                <span class="date">10-10-2025</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">
+Esta semana, el profesor Mario Ramírez, Doctor en Ciencias Biológicas con mención en Genética Molecular y Microbiología por la Pontificia Universidad...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/bienvenido-a-la-revista-nacional-de-las-ciencias-para-estudiantes-2025-09-15.html" class="news-link">¡Bienvenido a la Revista Nacional de las Ciencias para Estudiantes!</a>
+              <div class="news-meta">
+                <span class="date">14-09-2025</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">Te damos la más cordial bienvenida a la&nbsp;Revista Nacional de las Ciencias para Estudiantes. Estamos muy contentos de tenerte por acá. Esperamos co...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/conocemos-tu-dolor-pero-no-te-preocupes-2025-09-15.html" class="news-link">Conocemos tu dolor, pero no te preocupes</a>
+              <div class="news-meta">
+                <span class="date">14-09-2025</span>
+                <span class="author">Redacción Editorial</span>
+              </div>
+              <div class="news-excerpt">Muchos&nbsp;en estos días seguro habrán pensado: "cómo me gustaría subir mi artículo a la&nbsp;Revista Nacional de las Ciencias para Estudiantes,&nbsp...</div>
+            </li>
+          
+        </ul>
+      </section>
+      
+    </main>
+  </div>
+  <footer>
+    <p>&copy; 2026 Revista Nacional de las Ciencias para Estudiantes</p>
+    <p style="margin-top: 0.5rem;"><a href="/" style="color: var(--primary); text-decoration: none;">Volver al inicio</a></p>
+  </footer>
+</body>
+</html>

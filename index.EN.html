@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Archive - The National Review of Sciences for Students</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #005a7d;
+      --text-main: #222222;
+      --text-light: #595959;
+      --border-color: #e5e7eb;
+      --bg-soft: #f8f9fa;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Lora', serif;
+      color: var(--text-main);
+      background-color: #f5f5f5;
+      line-height: 1.8;
+    }
+    .nav-minimal {
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      font-family: 'Inter', sans-serif;
+    }
+    .nav-logo {
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+    .main-wrapper {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 0 2rem;
+    }
+    .content-card {
+      background: white;
+      padding: 3rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      margin: 0 0 1rem;
+      line-height: 1.2;
+      color: var(--primary);
+    }
+    .description {
+      color: var(--text-light);
+      margin-bottom: 3rem;
+      font-size: 1.1rem;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 1rem;
+    }
+    .year-section {
+      margin-bottom: 3rem;
+    }
+    .year-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 2rem;
+      color: var(--primary);
+      margin: 0 0 1.5rem;
+      border-left: 4px solid var(--primary);
+      padding-left: 1rem;
+    }
+    .news-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .news-item {
+      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .news-item:hover {
+      background: var(--bg-soft);
+      transform: translateX(5px);
+      border-left: 4px solid var(--primary);
+    }
+    .news-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.5rem;
+      font-family: 'Playfair Display', serif;
+    }
+    .news-link:hover {
+      text-decoration: underline;
+    }
+    .news-meta {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-family: 'Inter', sans-serif;
+    }
+    .news-excerpt {
+      margin-top: 1rem;
+      color: var(--text-main);
+      font-size: 1rem;
+    }
+    footer {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      background: white;
+      border-top: 1px solid var(--border-color);
+    }
+    @media (max-width: 768px) {
+      .main-wrapper { padding: 0 1rem; }
+      .content-card { padding: 1.5rem; }
+      h1 { font-size: 2.2rem; }
+      .year-title { font-size: 1.6rem; }
+      .news-link { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-minimal">
+    <a href="/" class="nav-logo">THE NATIONAL REVIEW OF SCIENCES FOR STUDENTS</a>
+    <div class="issn">ISSN: 3087-2839</div>
+  </nav>
+  <div class="main-wrapper">
+    <main class="content-card">
+      <h1>News Archive</h1>
+      <p class="description">All news from the journal, sorted by year of publication.</p>
+      
+      
+      <section class="year-section">
+        <h2 class="year-title">2026</h2>
+        <ul class="news-list">
+          
+            <li class="news-item">
+              <a href="/news/que-pasa-con-los-que-el-sistema-abandona-2026-02-26.EN.html" class="news-link">"What happens to those whom the system abandons?"</a>
+              <div class="news-meta">
+                <span class="date">02/25/2026</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">
+    In Chile, thousands of children grow up with an absence that is not always named. It is not abandonment. It is not death. It is prison. And, for ...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/ya-tenemos-issn-2026-02-06.EN.html" class="news-link">We Now Have an ISSN!</a>
+              <div class="news-meta">
+                <span class="date">02/05/2026</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">
+    Dear community:We are pleased to announce that our journal now has an ISSN. The National Agency for Research and Development of Chile (ANID), the...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/el-primer-volumen-de-la-revista-ya-disponible-2026-02-03.EN.html" class="news-link">The first volume of the journal now available!</a>
+              <div class="news-meta">
+                <span class="date">02/02/2026</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">
+  Dear community:
+  We are pleased to announce the publication of the full official volume of the journal for the year 2025. This issue brings togeth...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/mas-de-8-000-flores-y-un-origen-inesperado-los-secretos-que-esconde-el-reloj-de-vina-del-mar-2026-01-27.EN.html" class="news-link">More than 8,000 Flowers and an Unexpected Origin: The Secrets Hidden by the Viña del Mar Clock</a>
+              <div class="news-meta">
+                <span class="date">01/26/2026</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">
+.article p {
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.article h2 {
+  margin: 2rem 0 1rem;
+}
+
+.article img {
+  display: block;
+  width: 100%;
+  h...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/dormir-para-vivir-mejor-un-nuevo-articulo-explica-la-ciencia-del-sueno-y-los-riesgos-de-no-descansar-2026-01-18.EN.html" class="news-link">Sleep to Live Better: A New Article Explains the Science of Sleep and the Risks of Not Resting</a>
+              <div class="news-meta">
+                <span class="date">01/17/2026</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">Attention everyone!You can now read the latest article published in our review!Title: Human Sleep and Its Cycles: Neurobiological Bases and Consequenc...</div>
+            </li>
+          
+        </ul>
+      </section>
+      
+      <section class="year-section">
+        <h2 class="year-title">2025</h2>
+        <ul class="news-list">
+          
+            <li class="news-item">
+              <a href="/news/como-llego-la-humanidad-hasta-aqui-un-nuevo-articulo-invita-a-repensar-nuestra-historia-2025-12-14.EN.html" class="news-link">How did humanity get here? A new article invites us to rethink our history</a>
+              <div class="news-meta">
+                <span class="date">12/13/2025</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">Attention everyone!You can now read the latest article published in our review!Title: Book Review “Sapiens: A Brief History of Humankind” Author: José...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/los-articulos-de-la-revista-en-google-academico-2025-12-04.EN.html" class="news-link">The journal articles on Google Scholar!</a>
+              <div class="news-meta">
+                <span class="date">12/03/2025</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">We have more news!As many already know, our journal recently began its activities, with the mission of promoting the academic work of students worldwi...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/ya-esta-disponible-el-dossier-especial-de-nuestro-primer-volumen-2025-12-04.EN.html" class="news-link">Our first volume's special dossier now available!</a>
+              <div class="news-meta">
+                <span class="date">12/03/2025</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">Attention everyone!
+
+The special dossier of our first volume is now available!
+
+
+  During these last few days, we have been very active reviewing and ...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/nuevo-articulo-publicado-en-la-revista-nacional-de-las-ciencias-para-estudiantes-2025-11-28.EN.html" class="news-link">New article published in the National Review of Sciences for Students!</a>
+              <div class="news-meta">
+                <span class="date">11/27/2025</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">Attention to all readers and collaborators!The National Review of Sciences for Students has published a new article that addresses a topic of great re...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/el-primer-articulo-de-la-revista-nacional-de-las-ciencias-para-estudiantes-ya-esta-disponible-2025-11-16.EN.html" class="news-link">The first article of the National Review of Sciences for Students is now available!</a>
+              <div class="news-meta">
+                <span class="date">11/15/2025</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">&nbsp;Attention everyone!The first article of The National Review of Sciences for Students is now available!Title: Impacto Sociodemográfico de las Pol...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/buenas-noticias-mario-ramirez-se-une-a-nuestra-revista-2025-10-11.EN.html" class="news-link">Good News! Mario Ramírez Joins Our Journal </a>
+              <div class="news-meta">
+                <span class="date">10/10/2025</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">This week, Professor Mario Ramírez, Doctor in Biological Sciences with a mention in Molecular Genetics and Microbiology from the Pontifical Catholic U...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/bienvenido-a-la-revista-nacional-de-las-ciencias-para-estudiantes-2025-09-15.EN.html" class="news-link">Welcome to The National Review of Sciences for Students!</a>
+              <div class="news-meta">
+                <span class="date">09/14/2025</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">We extend our warmest welcome to&nbsp;The National Review of Sciences for Students. We are very happy to have you here. We eagerly await your article ...</div>
+            </li>
+          
+            <li class="news-item">
+              <a href="/news/conocemos-tu-dolor-pero-no-te-preocupes-2025-09-15.EN.html" class="news-link">We understand your pain, but don't worry</a>
+              <div class="news-meta">
+                <span class="date">09/14/2025</span>
+                <span class="author">Editorial Staff</span>
+              </div>
+              <div class="news-excerpt">Many have surely thought these days: "How I would like to submit my article to The National Review of Sciences for Students, but I don't know how to d...</div>
+            </li>
+          
+        </ul>
+      </section>
+      
+    </main>
+  </div>
+  <footer>
+    <p>&copy; 2026 The National Review of Sciences for Students</p>
+    <p style="margin-top: 0.5rem;"><a href="/" style="color: var(--primary); text-decoration: none;">Back to home</a></p>
+  </footer>
+</body>
+</html>
