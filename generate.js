@@ -1142,6 +1142,7 @@ function generateNewsHtmlTemplate({
   </main>
 
   <!-- Footer con Redes Sociales y Contacto -->
+    <!-- Footer con Redes Sociales y Contacto -->
   <footer class="footer">
     <div class="footer-container">
       <!-- Redes Sociales -->
@@ -1165,60 +1166,38 @@ function generateNewsHtmlTemplate({
       </div>
 
       <!-- Contacto (abre Gmail directamente) -->
-      <!-- Contacto - Versión ultra simple sin JavaScript -->
-<div class="footer-contact">
-  <span class="contact-label">${t.contact}</span>
-  
-  <!-- Versión para escritorio (Gmail) - visible solo en pantallas grandes -->
-  <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@revistacienciasestudiantes.com" 
-     target="_blank" 
-     class="contact-email desktop-only"
-     rel="noopener">
-    contact@revistacienciasestudiantes.com
-  </a>
-  
-  <!-- Versión para móvil (mailto) - visible solo en pantallas pequeñas -->
-  <a href="mailto:contact@revistacienciasestudiantes.com" 
-     class="contact-email mobile-only"
-     rel="noopener">
-    contact@revistacienciasestudiantes.com
-  </a>
-</div>
+      <div class="footer-contact">
+        <span class="contact-label">${t.contact}</span>
+        
+        <!-- Versión para escritorio (Gmail) - visible solo en pantallas grandes -->
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@revistacienciasestudiantes.com" 
+           target="_blank" 
+           class="contact-email desktop-only"
+           rel="noopener">
+          contact@revistacienciasestudiantes.com
+        </a>
+        
+        <!-- Versión para móvil (mailto) - visible solo en pantallas pequeñas -->
+        <a href="mailto:contact@revistacienciasestudiantes.com" 
+           class="contact-email mobile-only"
+           rel="noopener">
+          contact@revistacienciasestudiantes.com
+        </a>
+      </div>
 
-<style>
-/* Por defecto: ocultar versión móvil, mostrar escritorio */
-.mobile-only {
-  display: none;
-}
-.desktop-only {
-  display: inline-block;
-}
-
-/* En pantallas pequeñas (móviles): ocultar escritorio, mostrar móvil */
-@media (max-width: 768px) {
-  .desktop-only {
-    display: none;
-  }
-  .mobile-only {
-    display: inline-block;
-  }
-}
-</style>
-
-      <!-- Copyright y enlaces legales -->
+      <!-- Copyright y enlaces legales - MODIFICADO CON SUFIJO DE IDIOMA -->
       <div class="footer-bottom">
         <div class="footer-links">
-          <a href="/privacy.html">Privacidad</a>
+          <a href="/privacy${isSpanish ? '' : '.EN'}.html">Privacidad</a>
           <span>|</span>
-          <a href="/terms.html">Términos</a>
+          <a href="/terms${isSpanish ? '' : '.EN'}.html">Términos</a>
           <span>|</span>
-          <a href="/credits.html">Créditos</a>
+          <a href="/credits${isSpanish ? '' : '.EN'}.html">Créditos</a>
         </div>
         <p>© ${new Date().getFullYear()} ${journalName} · ISSN 3087-2839</p>
       </div>
     </div>
   </footer>
-
   <script>
     // ========== PROGRESS BAR ==========
     window.addEventListener('scroll', () => {
