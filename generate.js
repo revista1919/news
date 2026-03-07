@@ -1092,6 +1092,7 @@ function generateNewsHtmlTemplate({
     });
 
     // ========== TEXTO A VOZ ==========
+        // ========== TEXTO A VOZ (CORREGIDO) ==========
     const playPauseBtn = document.getElementById('playPauseBtn');
     const stopBtn = document.getElementById('stopBtn');
     const statusText = document.getElementById('statusText');
@@ -1100,43 +1101,91 @@ function generateNewsHtmlTemplate({
     let utterance = null;
     let isPlaying = false;
     let currentChar = 0;
+    let voicesReady = false; // Bandera para saber si las voces están cargadas
+    let selectedVoice = null; // Para guardar la voz preferida
     
     // Obtener el texto del artículo
     const articleContent = document.getElementById('articleContent').innerText;
     
     // Configurar idioma
     const lang = '${lang}';
+    const voiceLang = lang === 'es' ? 'es-ES' : 'en-US';
+    
+    // Función para cargar voces y seleccionar la mejor disponible
+    function loadVoicesAndSetup() {
+      return new Promise((resolve) => {
+        let voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          selectVoice(voices);
+          resolve();
+        } else {
+          // Si no hay voces, esperar al evento 'voiceschanged'
+          window.speechSynthesis.onvoiceschanged = () => {
+            voices = window.speechSynthesis.getVoices();
+            selectVoice(voices);
+            resolve();
+          };
+        }
+      });
+    }
+    
+    // Selecciona la voz preferida para el idioma actual
+    function selectVoice(voices) {
+      // Intentar encontrar una voz premium de Google para el idioma (suenan mejor)
+      selectedVoice = voices.find(voice => voice.lang === voiceLang && voice.name.includes('Google'));
+      // Si no, buscar cualquier voz del idioma
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => voice.lang === voiceLang);
+      }
+      // Si no, usar la voz por defecto del sistema (la que sea)
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => voice.default);
+      }
+      console.log('Voz seleccionada:', selectedVoice ? selectedVoice.name : 'Ninguna');
+    }
     
     function createUtterance() {
+      // Cancelar cualquier síntesis anterior para evitar conflictos
+      window.speechSynthesis.cancel();
+      
       const newUtterance = new SpeechSynthesisUtterance(articleContent);
-      newUtterance.lang = lang === 'es' ? 'es-ES' : 'en-US';
-      newUtterance.rate = 0.9; // Velocidad de lectura
+      
+      // Aplicar la voz seleccionada si existe
+      if (selectedVoice) {
+        newUtterance.voice = selectedVoice;
+      } else {
+        // Fallback: solo configurar el idioma
+        newUtterance.lang = voiceLang;
+      }
+      
+      newUtterance.rate = 0.9;
       newUtterance.pitch = 1;
       newUtterance.volume = 1;
       
       newUtterance.onstart = () => {
         isPlaying = true;
         statusText.innerText = lang === 'es' ? 'Reproduciendo...' : 'Playing...';
-        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; // Icono pausa
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
       };
       
       newUtterance.onpause = () => {
         isPlaying = false;
         statusText.innerText = lang === 'es' ? 'Pausado' : 'Paused';
-        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>'; // Icono play
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
       };
       
       newUtterance.onresume = () => {
         isPlaying = true;
         statusText.innerText = lang === 'es' ? 'Reproduciendo...' : 'Playing...';
-        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; // Icono pausa
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
       };
       
       newUtterance.onend = () => {
         isPlaying = false;
         statusText.innerText = lang === 'es' ? 'Escuchar noticia' : 'Listen to article';
-        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>'; // Icono play
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
         currentChar = 0;
+        utterance = null; // Limpiar para poder recrear si se vuelve a reproducir
       };
       
       newUtterance.onerror = (event) => {
@@ -1144,12 +1193,42 @@ function generateNewsHtmlTemplate({
         isPlaying = false;
         statusText.innerText = lang === 'es' ? 'Error' : 'Error';
         playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        utterance = null;
+        
+        // Intento de recuperación: recargar voces y notificar al usuario
+        loadVoicesAndSetup().then(() => {
+          console.log('Voces recargadas después de error.');
+        });
       };
       
       return newUtterance;
     }
     
+    // Inicialización: cargar voces al cargar la página
+    loadVoicesAndSetup().then(() => {
+      voicesReady = true;
+      console.log('Voces listas para el idioma:', voiceLang);
+    });
+    
     playPauseBtn.addEventListener('click', () => {
+      // Asegurarse de que las voces estén listas
+      if (!voicesReady) {
+        statusText.innerText = lang === 'es' ? 'Cargando...' : 'Loading...';
+        loadVoicesAndSetup().then(() => {
+          voicesReady = true;
+          // Intentar reproducir de nuevo automáticamente después de cargar
+          if (!utterance) {
+            utterance = createUtterance();
+            window.speechSynthesis.speak(utterance);
+          } else if (isPlaying) {
+            window.speechSynthesis.pause();
+          } else {
+            window.speechSynthesis.resume();
+          }
+        });
+        return;
+      }
+      
       if (!utterance) {
         utterance = createUtterance();
         window.speechSynthesis.speak(utterance);
@@ -1174,8 +1253,15 @@ function generateNewsHtmlTemplate({
         window.speechSynthesis.cancel();
       }
     });
-
-    // ========== FUNCIONES DE COMPARTIR ==========
+    
+    // Bug de Chromium: a veces la síntesis se "cuelga" si se llama muchas veces.
+    // Este timeout ayuda a reiniciarla si es necesario.
+    setInterval(() => {
+      if (window.speechSynthesis.speaking && !isPlaying) {
+        // Esto puede ocurrir en algunos estados de error, forzamos la cancelación.
+        window.speechSynthesis.cancel();
+      }
+    }, 10000); // Comprobar cada 10 segundos
     // ========== FUNCIONES DE COMPARTIR CORREGIDAS ==========
 // ========== FUNCIONES DE COMPARTIR ==========
 function shareOnTwitter() {
