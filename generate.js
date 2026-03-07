@@ -1165,15 +1165,45 @@ function generateNewsHtmlTemplate({
       </div>
 
       <!-- Contacto (abre Gmail directamente) -->
-      <div class="footer-contact">
-        <span class="contact-label">${t.contact}</span>
-        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@revistacienciasestudiantes.com" 
-           target="_blank" 
-           class="contact-email"
-           rel="noopener">
-          contact@revistacienciasestudiantes.com
-        </a>
-      </div>
+      <!-- Contacto - Versión ultra simple sin JavaScript -->
+<div class="footer-contact">
+  <span class="contact-label">${t.contact}</span>
+  
+  <!-- Versión para escritorio (Gmail) - visible solo en pantallas grandes -->
+  <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@revistacienciasestudiantes.com" 
+     target="_blank" 
+     class="contact-email desktop-only"
+     rel="noopener">
+    contact@revistacienciasestudiantes.com
+  </a>
+  
+  <!-- Versión para móvil (mailto) - visible solo en pantallas pequeñas -->
+  <a href="mailto:contact@revistacienciasestudiantes.com" 
+     class="contact-email mobile-only"
+     rel="noopener">
+    contact@revistacienciasestudiantes.com
+  </a>
+</div>
+
+<style>
+/* Por defecto: ocultar versión móvil, mostrar escritorio */
+.mobile-only {
+  display: none;
+}
+.desktop-only {
+  display: inline-block;
+}
+
+/* En pantallas pequeñas (móviles): ocultar escritorio, mostrar móvil */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none;
+  }
+  .mobile-only {
+    display: inline-block;
+  }
+}
+</style>
 
       <!-- Copyright y enlaces legales -->
       <div class="footer-bottom">
