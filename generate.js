@@ -360,6 +360,7 @@ function generateNewsHtmlTemplate({
   <meta property="og:type" content="article">
   <meta property="article:published_time" content="${fecha}">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="language" content="<?php echo $lang; ?>">
   <title>${title} - ${isSpanish ? 'Noticias' : 'News'} - ${journalName}</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -1199,356 +1200,466 @@ function generateNewsHtmlTemplate({
     });
 
 // ========== TEXTO A VOZ CON TODAS LAS MEJORAS ==========
-const playPauseBtn = document.getElementById('playPauseBtn');
-const stopBtn = document.getElementById('stopBtn');
-const toggleAdvancedBtn = document.getElementById('toggleAdvancedBtn');
-const statusText = document.getElementById('statusText');
-const playIcon = document.getElementById('playIcon');
-const voiceSelector = document.getElementById('voiceSelector');
-const rateControl = document.getElementById('rateControl');
-const rateValue = document.getElementById('rateValue');
-const audioProgressBar = document.getElementById('audioProgressBar');
-const audioPlayer = document.getElementById('audioPlayer');
+document.addEventListener('DOMContentLoaded', function() {
+  // Verificar que todos los elementos existen
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const toggleAdvancedBtn = document.getElementById('toggleAdvancedBtn');
+  const statusText = document.getElementById('statusText');
+  const playIcon = document.getElementById('playIcon');
+  const voiceSelector = document.getElementById('voiceSelector');
+  const rateControl = document.getElementById('rateControl');
+  const rateValue = document.getElementById('rateValue');
+  const audioProgressBar = document.getElementById('audioProgressBar');
+  const audioPlayer = document.getElementById('audioPlayer');
+  const articleContentEl = document.getElementById('articleContent');
 
-let utterance = null;
-let isPlaying = false;
-let isPaused = false;
-let voicesReady = false;
-let selectedVoice = null;
-let synthesis = window.speechSynthesis;
-let restartTimeout = null;
-let currentPosition = 0;
-let wordCount = 0;
-let updateInterval = null;
+  // Verificar elementos críticos
+  if (!playPauseBtn || !stopBtn || !statusText || !playIcon || !voiceSelector || 
+      !rateControl || !rateValue || !audioProgressBar || !audioPlayer || !articleContentEl) {
+    console.warn('Algunos elementos de texto a voz no existen en la página');
+    return; // Salir si faltan elementos esenciales
+  }
 
-// Obtener el texto del artículo
-const articleContent = document.getElementById('articleContent').innerText;
-const totalWords = articleContent.split(/\s+/).length;
+  let utterance = null;
+  let isPlaying = false;
+  let isPaused = false;
+  let voicesReady = false;
+  let selectedVoice = null;
+  let synthesis = window.speechSynthesis;
+  let restartTimeout = null;
+  let currentPosition = 0;
+  let wordCount = 0;
+  let updateInterval = null;
 
-// Configurar idioma - ¡CORREGIDO!
-const pageLang = document.documentElement.lang; // Tomar el idioma del atributo lang del HTML
-const voiceLang = pageLang === 'es' ? 'es-ES' : 'en-US';
+  // Obtener el texto del artículo con validación
+  const articleContent = articleContentEl.innerText || articleContentEl.textContent || '';
+  const totalWords = articleContent.trim() ? articleContent.split(/\s+/).length : 0;
 
-// Función para cargar voces
-function loadVoices() {
-  return new Promise((resolve) => {
-    let voices = synthesis.getVoices();
-    if (voices.length > 0) {
-      populateVoiceList(voices);
-      selectVoice(voices);
-      voicesReady = true;
-      resolve();
-    } else {
-      synthesis.onvoiceschanged = () => {
-        voices = synthesis.getVoices();
+  // Configurar idioma - DETECCIÓN INMUNE A ERRORES
+  let lang = 'es'; // Valor por defecto
+  
+  // Método 1: Data attribute (recomendado - añade data-lang="es" o "en" al body en PHP)
+  if (document.body.dataset.lang) {
+    lang = document.body.dataset.lang;
+  } 
+  // Método 2: Meta tag
+  else {
+    const metaLang = document.querySelector('meta[name="language"]');
+    if (metaLang && metaLang.content) {
+      lang = metaLang.content;
+    }
+    // Método 3: Detectar del HTML
+    else {
+      const htmlLang = document.documentElement.lang;
+      if (htmlLang) {
+        lang = htmlLang.substring(0, 2);
+      }
+    }
+  }
+  
+  const voiceLang = lang === 'es' ? 'es-ES' : 'en-US';
+
+  // Función para cargar voces
+  function loadVoices() {
+    return new Promise((resolve) => {
+      if (!synthesis) {
+        console.error('Speech synthesis no soportado');
+        resolve();
+        return;
+      }
+      
+      let voices = synthesis.getVoices();
+      if (voices.length > 0) {
         populateVoiceList(voices);
         selectVoice(voices);
         voicesReady = true;
         resolve();
-      };
-    }
-  });
-}
-
-// Poblar el selector de voces - ¡CORREGIDO!
-function populateVoiceList(voices) {
-  // Limpiar el selector
-  voiceSelector.innerHTML = '';
-  
-  // Opción por defecto
-  const defaultOption = document.createElement('option');
-  defaultOption.value = '';
-  defaultOption.textContent = pageLang === 'es' ? 'Voz por defecto' : 'Default voice';
-  voiceSelector.appendChild(defaultOption);
-  
-  // Filtrar voces del idioma actual primero
-  const langVoices = voices.filter(voice => voice.lang.startsWith(voiceLang.split('-')[0]));
-  const otherVoices = voices.filter(voice => !voice.lang.startsWith(voiceLang.split('-')[0]));
-  
-  // Agregar voces del idioma
-  langVoices.forEach(voice => {
-    const option = document.createElement('option');
-    option.value = voice.name;
-    const defaultLabel = voice.default ? ' [Default]' : '';
-    option.textContent = `${voice.name} (${voice.lang})${defaultLabel}`;
-    option.dataset.lang = voice.lang;
-    voiceSelector.appendChild(option);
-  });
-  
-  // Agregar separador y otras voces si existen
-  if (otherVoices.length > 0) {
-    const separator = document.createElement('option');
-    separator.disabled = true;
-    separator.textContent = '──────────';
-    voiceSelector.appendChild(separator);
-    
-    otherVoices.forEach(voice => {
-      const option = document.createElement('option');
-      option.value = voice.name;
-      option.textContent = `${voice.name} (${voice.lang})`;
-      option.dataset.lang = voice.lang;
-      voiceSelector.appendChild(option);
+      } else {
+        synthesis.onvoiceschanged = () => {
+          voices = synthesis.getVoices();
+          populateVoiceList(voices);
+          selectVoice(voices);
+          voicesReady = true;
+          resolve();
+        };
+      }
     });
   }
-}
 
-function selectVoice(voices) {
-  // Intentar encontrar una voz premium de Google
-  selectedVoice = voices.find(voice => voice.lang === voiceLang && voice.name.includes('Google'));
-  if (!selectedVoice) {
-    selectedVoice = voices.find(voice => voice.lang === voiceLang);
-  }
-  if (!selectedVoice) {
-    selectedVoice = voices.find(voice => voice.default);
-  }
-  
-  // Seleccionar en el dropdown
-  if (selectedVoice) {
-    const option = Array.from(voiceSelector.options).find(opt => opt.value === selectedVoice.name);
-    if (option) option.selected = true;
-  }
-  
-  console.log('Voz seleccionada:', selectedVoice ? selectedVoice.name : 'Default');
-}
-
-// Evento para cambiar la voz
-voiceSelector.addEventListener('change', (e) => {
-  const voiceName = e.target.value;
-  if (!voiceName) {
-    selectedVoice = null;
-  } else {
-    const voices = synthesis.getVoices();
-    selectedVoice = voices.find(v => v.name === voiceName);
-  }
-  
-  // Si hay una reproducción activa, reiniciar con la nueva voz
-  if (isPlaying || isPaused) {
-    const wasPlaying = isPlaying;
-    const wasPaused = isPaused;
+  // Poblar el selector de voces - VERSIÓN INMUNE
+  function populateVoiceList(voices) {
+    if (!voiceSelector) return;
     
-    cleanup();
+    // Limpiar selector
+    voiceSelector.innerHTML = '';
     
-    if (wasPlaying || wasPaused) {
-      utterance = createUtterance();
-      synthesis.speak(utterance);
+    // Opción por defecto - SIN PHP EMBEBIDO
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = lang === 'es' ? 'Voz por defecto' : 'Default voice';
+    voiceSelector.appendChild(defaultOption);
+    
+    if (!voices || voices.length === 0) {
+      console.warn('No hay voces disponibles');
+      return;
     }
-  }
-});
-
-// Control de velocidad
-rateControl.addEventListener('input', (e) => {
-  const rate = parseFloat(e.target.value);
-  rateValue.textContent = rate.toFixed(1) + 'x';
-  
-  if (utterance) {
-    utterance.rate = rate;
-  }
-});
-
-function cleanup() {
-  if (synthesis.speaking) {
-    synthesis.cancel();
-  }
-  if (restartTimeout) {
-    clearTimeout(restartTimeout);
-    restartTimeout = null;
-  }
-  if (updateInterval) {
-    clearInterval(updateInterval);
-    updateInterval = null;
-  }
-  audioProgressBar.style.width = '0%';
-}
-
-function createUtterance() {
-  cleanup();
-  
-  const newUtterance = new SpeechSynthesisUtterance(articleContent);
-  
-  if (selectedVoice) {
-    newUtterance.voice = selectedVoice;
-  } else {
-    newUtterance.lang = voiceLang;
-  }
-  
-  newUtterance.rate = parseFloat(rateControl.value);
-  newUtterance.pitch = 1;
-  newUtterance.volume = 1;
-  
-  newUtterance.onstart = () => {
-    isPlaying = true;
-    isPaused = false;
-    statusText.innerText = pageLang === 'es' ? 'Reproduciendo...' : 'Playing...';
-    playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
     
-    // Iniciar actualización del progreso
-    wordCount = 0;
-    updateInterval = setInterval(() => {
-      if (isPlaying && totalWords > 0) {
-        const progress = (wordCount / totalWords) * 100;
-        audioProgressBar.style.width = Math.min(progress, 100) + '%';
+    // Filtrar voces del idioma actual primero
+    const langPrefix = voiceLang.split('-')[0];
+    const langVoices = [];
+    const otherVoices = [];
+    
+    voices.forEach(voice => {
+      if (voice.lang && voice.lang.startsWith(langPrefix)) {
+        langVoices.push(voice);
+      } else {
+        otherVoices.push(voice);
       }
-    }, 100);
-  };
-  
-  newUtterance.onboundary = (event) => {
-    if (event.name === 'word') {
-      wordCount++;
-      currentPosition = event.charIndex;
+    });
+    
+    // Agregar voces del idioma
+    langVoices.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice.name || '';
+      const voiceName = String(voice.name || 'Voz sin nombre');
+      const voiceLang_str = String(voice.lang || 'idioma desconocido');
+      const isDefault = voice.default ? ' [Default]' : '';
+      option.textContent = voiceName + ' (' + voiceLang_str + ')' + isDefault;
+      option.dataset.lang = voiceLang_str;
+      voiceSelector.appendChild(option);
+    });
+    
+    // Agregar separador y otras voces si existen
+    if (otherVoices.length > 0) {
+      const separator = document.createElement('option');
+      separator.disabled = true;
+      separator.textContent = '──────────';
+      voiceSelector.appendChild(separator);
+      
+      otherVoices.forEach(voice => {
+        const option = document.createElement('option');
+        option.value = voice.name || '';
+        const voiceName = String(voice.name || 'Voz sin nombre');
+        const voiceLang_str = String(voice.lang || 'idioma desconocido');
+        option.textContent = voiceName + ' (' + voiceLang_str + ')';
+        option.dataset.lang = voiceLang_str;
+        voiceSelector.appendChild(option);
+      });
     }
-  };
-  
-  newUtterance.onpause = () => {
-    isPlaying = false;
-    isPaused = true;
-    statusText.innerText = pageLang === 'es' ? 'Pausado' : 'Paused';
-    playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-  };
-  
-  newUtterance.onresume = () => {
-    isPlaying = true;
-    isPaused = false;
-    statusText.innerText = pageLang === 'es' ? 'Reproduciendo...' : 'Playing...';
-    playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-  };
-  
-  newUtterance.onend = () => {
-    isPlaying = false;
-    isPaused = false;
-    utterance = null;
-    statusText.innerText = pageLang === 'es' ? 'Escuchar noticia' : 'Listen to article';
-    playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-    audioProgressBar.style.width = '100%';
+  }
+
+  function selectVoice(voices) {
+    if (!voices || voices.length === 0) return;
     
-    setTimeout(() => {
-      audioProgressBar.style.width = '0%';
-    }, 500);
+    // Intentar encontrar una voz premium de Google
+    selectedVoice = voices.find(voice => voice.lang === voiceLang && voice.name && voice.name.includes('Google'));
+    if (!selectedVoice) {
+      selectedVoice = voices.find(voice => voice.lang === voiceLang);
+    }
+    if (!selectedVoice) {
+      selectedVoice = voices.find(voice => voice.default);
+    }
     
+    // Seleccionar en el dropdown
+    if (selectedVoice && voiceSelector) {
+      const options = Array.from(voiceSelector.options);
+      const option = options.find(opt => opt.value === selectedVoice.name);
+      if (option) option.selected = true;
+    }
+    
+    console.log('Voz seleccionada:', selectedVoice ? selectedVoice.name : 'Default');
+  }
+
+  // Evento para cambiar la voz
+  if (voiceSelector) {
+    voiceSelector.addEventListener('change', (e) => {
+      const voiceName = e.target.value;
+      if (!voiceName) {
+        selectedVoice = null;
+      } else {
+        const voices = synthesis.getVoices();
+        selectedVoice = voices.find(v => v.name === voiceName);
+      }
+      
+      // Si hay una reproducción activa, reiniciar con la nueva voz
+      if (isPlaying || isPaused) {
+        const wasPlaying = isPlaying;
+        const wasPaused = isPaused;
+        
+        cleanup();
+        
+        if (wasPlaying || wasPaused) {
+          utterance = createUtterance();
+          if (utterance) synthesis.speak(utterance);
+        }
+      }
+    });
+  }
+
+  // Control de velocidad
+  if (rateControl && rateValue) {
+    rateControl.addEventListener('input', (e) => {
+      const rate = parseFloat(e.target.value) || 1;
+      rateValue.textContent = rate.toFixed(1) + 'x';
+      
+      if (utterance) {
+        utterance.rate = rate;
+      }
+    });
+  }
+
+  function cleanup() {
+    if (synthesis && synthesis.speaking) {
+      synthesis.cancel();
+    }
+    if (restartTimeout) {
+      clearTimeout(restartTimeout);
+      restartTimeout = null;
+    }
     if (updateInterval) {
       clearInterval(updateInterval);
       updateInterval = null;
     }
-  };
-  
-  newUtterance.onerror = (event) => {
-    console.error('Speech error:', event);
-    
-    if (event.error === 'interrupted' || event.error === 'canceled') {
-      return;
+    if (audioProgressBar) {
+      audioProgressBar.style.width = '0%';
+    }
+  }
+
+  function createUtterance() {
+    if (!articleContent) {
+      console.warn('No hay contenido para reproducir');
+      return null;
     }
     
-    isPlaying = false;
-    isPaused = false;
-    utterance = null;
-    statusText.innerText = pageLang === 'es' ? 'Error - intenta de nuevo' : 'Error - try again';
-    playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-    
-    setTimeout(() => {
-      loadVoices();
-      statusText.innerText = pageLang === 'es' ? 'Listo' : 'Ready';
-    }, 1000);
-  };
-  
-  return newUtterance;
-}
-
-// Toggle controles avanzados
-toggleAdvancedBtn.addEventListener('click', () => {
-  audioPlayer.classList.toggle('expanded');
-  toggleAdvancedBtn.classList.toggle('active');
-  
-  // Mostrar/ocultar controles avanzados
-  const speedControl = document.querySelector('.speed-control');
-  const voiceSelector_ = document.getElementById('voiceSelector');
-  if (audioPlayer.classList.contains('expanded')) {
-    speedControl.style.display = 'flex';
-    voiceSelector_.style.display = 'block';
-  } else {
-    speedControl.style.display = 'none';
-    voiceSelector_.style.display = 'none';
-  }
-});
-
-// Inicializar voces
-loadVoices().then(() => {
-  console.log('✅ Voces cargadas para:', voiceLang);
-});
-
-// Evento del botón play/pausa
-playPauseBtn.addEventListener('click', async () => {
-  if (!voicesReady) {
-    statusText.innerText = pageLang === 'es' ? 'Cargando...' : 'Loading...';
-    await loadVoices();
-  }
-  
-  if (!utterance || (!synthesis.speaking && !isPaused)) {
-    utterance = createUtterance();
-    synthesis.speak(utterance);
-  } else if (isPlaying) {
-    synthesis.pause();
-  } else if (isPaused) {
-    synthesis.resume();
-  }
-});
-
-// Evento del botón stop
-stopBtn.addEventListener('click', () => {
-  cleanup();
-  utterance = null;
-  isPlaying = false;
-  isPaused = false;
-  wordCount = 0;
-  statusText.innerText = pageLang === 'es' ? 'Escuchar noticia' : 'Listen to article';
-  playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-});
-
-// Limpiar al salir
-window.addEventListener('beforeunload', cleanup);
-
-// Workaround para bug de Chromium
-setInterval(() => {
-  if (synthesis.speaking && !isPlaying && !isPaused) {
     cleanup();
-    utterance = null;
+    
+    try {
+      const newUtterance = new SpeechSynthesisUtterance(articleContent);
+      
+      if (selectedVoice) {
+        newUtterance.voice = selectedVoice;
+      } else {
+        newUtterance.lang = voiceLang;
+      }
+      
+      newUtterance.rate = rateControl ? parseFloat(rateControl.value) || 1 : 1;
+      newUtterance.pitch = 1;
+      newUtterance.volume = 1;
+      
+      newUtterance.onstart = () => {
+        isPlaying = true;
+        isPaused = false;
+        if (statusText) statusText.innerText = lang === 'es' ? 'Reproduciendo...' : 'Playing...';
+        if (playIcon) playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        
+        // Iniciar actualización del progreso
+        wordCount = 0;
+        if (updateInterval) clearInterval(updateInterval);
+        updateInterval = setInterval(() => {
+          if (isPlaying && totalWords > 0 && audioProgressBar) {
+            const progress = (wordCount / totalWords) * 100;
+            audioProgressBar.style.width = Math.min(progress, 100) + '%';
+          }
+        }, 100);
+      };
+      
+      newUtterance.onboundary = (event) => {
+        if (event.name === 'word') {
+          wordCount++;
+          currentPosition = event.charIndex;
+        }
+      };
+      
+      newUtterance.onpause = () => {
+        isPlaying = false;
+        isPaused = true;
+        if (statusText) statusText.innerText = lang === 'es' ? 'Pausado' : 'Paused';
+        if (playIcon) playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      };
+      
+      newUtterance.onresume = () => {
+        isPlaying = true;
+        isPaused = false;
+        if (statusText) statusText.innerText = lang === 'es' ? 'Reproduciendo...' : 'Playing...';
+        if (playIcon) playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      };
+      
+      newUtterance.onend = () => {
+        isPlaying = false;
+        isPaused = false;
+        utterance = null;
+        if (statusText) statusText.innerText = lang === 'es' ? 'Escuchar noticia' : 'Listen to article';
+        if (playIcon) playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        if (audioProgressBar) {
+          audioProgressBar.style.width = '100%';
+          
+          setTimeout(() => {
+            if (audioProgressBar) audioProgressBar.style.width = '0%';
+          }, 500);
+        }
+        
+        if (updateInterval) {
+          clearInterval(updateInterval);
+          updateInterval = null;
+        }
+      };
+      
+      newUtterance.onerror = (event) => {
+        console.error('Speech error:', event);
+        
+        if (event.error === 'interrupted' || event.error === 'canceled') {
+          return;
+        }
+        
+        isPlaying = false;
+        isPaused = false;
+        utterance = null;
+        if (statusText) statusText.innerText = lang === 'es' ? 'Error - intenta de nuevo' : 'Error - try again';
+        if (playIcon) playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        
+        setTimeout(() => {
+          loadVoices();
+          if (statusText) statusText.innerText = lang === 'es' ? 'Listo' : 'Ready';
+        }, 1000);
+      };
+      
+      return newUtterance;
+    } catch (e) {
+      console.error('Error al crear utterance:', e);
+      return null;
+    }
   }
-}, 5000);
 
-// Recargar voces periódicamente
-setInterval(() => {
-  if (!synthesis.speaking && !isPlaying && !isPaused) {
-    loadVoices();
+  // Toggle controles avanzados
+  if (toggleAdvancedBtn && audioPlayer) {
+    toggleAdvancedBtn.addEventListener('click', () => {
+      audioPlayer.classList.toggle('expanded');
+      toggleAdvancedBtn.classList.toggle('active');
+    });
   }
-}, 60000);
+
+  // Inicializar voces
+  if (synthesis) {
+    loadVoices().then(() => {
+      console.log('✅ Voces cargadas para:', voiceLang);
+    });
+  } else {
+    console.warn('Speech synthesis no soportado en este navegador');
+  }
+
+  // Evento del botón play/pausa
+  if (playPauseBtn) {
+    playPauseBtn.addEventListener('click', async () => {
+      if (!synthesis) {
+        alert('Tu navegador no soporta texto a voz');
+        return;
+      }
+      
+      if (!voicesReady) {
+        if (statusText) statusText.innerText = lang === 'es' ? 'Cargando...' : 'Loading...';
+        await loadVoices();
+      }
+      
+      if (!utterance || (!synthesis.speaking && !isPaused)) {
+        utterance = createUtterance();
+        if (utterance) synthesis.speak(utterance);
+      } else if (isPlaying) {
+        synthesis.pause();
+      } else if (isPaused) {
+        synthesis.resume();
+      }
+    });
+  }
+
+  // Evento del botón stop
+  if (stopBtn) {
+    stopBtn.addEventListener('click', () => {
+      cleanup();
+      utterance = null;
+      isPlaying = false;
+      isPaused = false;
+      wordCount = 0;
+      if (statusText) statusText.innerText = lang === 'es' ? 'Escuchar noticia' : 'Listen to article';
+      if (playIcon) playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+    });
+  }
+
+  // Limpiar al salir
+  window.addEventListener('beforeunload', cleanup);
+
+  // Workaround para bug de Chromium
+  setInterval(() => {
+    if (synthesis && synthesis.speaking && !isPlaying && !isPaused) {
+      cleanup();
+      utterance = null;
+    }
+  }, 5000);
+
+  // Recargar voces periódicamente
+  setInterval(() => {
+    if (synthesis && !synthesis.speaking && !isPlaying && !isPaused) {
+      loadVoices();
+    }
+  }, 60000);
+});
+
 // ========== FUNCIONES DE COMPARTIR ==========
+// Estas funciones deben estar fuera del DOMContentLoaded para ser accesibles globalmente
+
 function shareOnTwitter() {
-  const url = encodeURIComponent(window.location.href);
-  const text = encodeURIComponent("${title.replace(/'/g, "\\'")}");
-  window.open("https://twitter.com/intent/tweet?url=" + url + "&text=" + text, "_blank");
+  try {
+    const url = encodeURIComponent(window.location.href);
+    // Título seguro sin PHP embebido
+    let title = '';
+    const metaTitle = document.querySelector('meta[property="og:title"]') || document.querySelector('title');
+    if (metaTitle) {
+      title = metaTitle.content || metaTitle.textContent || '';
+    }
+    const text = encodeURIComponent(title.substring(0, 100));
+    window.open('https://twitter.com/intent/tweet?url=' + url + '&text=' + text, '_blank');
+  } catch (e) {
+    console.error('Error al compartir en Twitter:', e);
+  }
 }
 
 function shareOnFacebook() {
-  const url = encodeURIComponent(window.location.href);
-  window.open("https://www.facebook.com/sharer/sharer.php?u=" + url, "_blank");
+  try {
+    const url = encodeURIComponent(window.location.href);
+    window.open('https://www.facebook.com/sharer/sharer.php?u=' + url, '_blank');
+  } catch (e) {
+    console.error('Error al compartir en Facebook:', e);
+  }
 }
 
 function shareOnLinkedIn() {
-  const url = encodeURIComponent(window.location.href);
-  window.open("https://www.linkedin.com/sharing/share-offsite/?url=" + url, "_blank");
+  try {
+    const url = encodeURIComponent(window.location.href);
+    window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + url, '_blank');
+  } catch (e) {
+    console.error('Error al compartir en LinkedIn:', e);
+  }
 }
 
-    // Smooth scroll para enlaces internos
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        const href = this.getAttribute('href');
-        if (href === '#') return;
-        
+// Smooth scroll para enlaces internos
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#' || !href) return;
+      
+      try {
         const target = document.querySelector(href);
         if (target) {
           e.preventDefault();
           target.scrollIntoView({ behavior: 'smooth' });
         }
-      });
+      } catch (err) {
+        console.warn('Error en smooth scroll:', err);
+      }
     });
+  });
+});
   </script>
 </body>
 </html>`;
