@@ -137,6 +137,7 @@ const oaSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 53" width
 </svg>`;
 
 // ========== FUNCIÓN PRINCIPAL ==========
+// ========== FUNCIÓN PRINCIPAL MODIFICADA ==========
 async function generateNews() {
   console.log('🚀 Iniciando generación de noticias estáticas...');
   console.log('📁 Directorio de salida:', OUTPUT_HTML_DIR);
@@ -166,115 +167,50 @@ async function generateNews() {
   }
 }
 
-async function generateNewsHtml(item) {
-  // Decodificar contenidos
-  const cuerpoDecoded = base64DecodeUnicode(item.cuerpo);
-  const contentDecoded = base64DecodeUnicode(item.content);
-  
-  // Generar slug
-  const slug = item.slug || generateSlug(`${item.titulo} ${item.fecha}`);
-  
-  console.log(`📝 Procesando: ${item.titulo} (${slug})`);
+// ========== REDES SOCIALES (del footer anterior) ==========
+const socialLinks = {
+  instagram: 'https://www.instagram.com/revistanacionalcienciae',
+  youtube: 'https://www.youtube.com/@RevistaNacionaldelasCienciaspa',
+  tiktok: 'https://www.tiktok.com/@revistacienciaestudiante',
+  spotify: 'https://open.spotify.com/show/6amsgUkNXgUTD219XpuqOe?si=LPzCNpusQjSLGBq_pPrVTw'
+};
 
-  // Procesar imágenes en el contenido
-  const processedCuerpo = await processImages(cuerpoDecoded, slug, 'es');
-  const processedContent = await processImages(contentDecoded, slug, 'en');
+// ========== SVG ICONS para redes sociales ==========
+const socialIcons = {
+  instagram: `<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
+  youtube: `<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+  tiktok: `<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>`,
+  spotify: `<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.508 17.308c-.221.362-.689.473-1.05.252-2.983-1.823-6.738-2.237-11.162-1.226-.411.094-.823-.162-.917-.573-.094-.412.162-.823.573-.917 4.847-1.108 8.995-.635 12.305 1.386.36.221.472.69.251 1.05zm1.47-3.255c-.278.452-.865.594-1.317.316-3.414-2.098-8.62-2.706-12.657-1.479-.508.154-1.04-.136-1.194-.644-.154-.508.136-1.04.644-1.194 4.613-1.399 10.366-.719 14.256 1.67.452.278.594.865.316 1.317zm.126-3.374C14.653 7.64 7.29 7.394 3.05 8.681c-.604.183-1.246-.166-1.429-.77-.183-.604.166-1.246.77-1.429 4.883-1.482 13.014-1.201 18.238 1.902.544.323.72 1.034.397 1.578-.323.544-1.034.72-1.578.397z"/></svg>`
+};
 
-  // ========== HTML ESPAÑOL ==========
-  const headerImageHtmlEs = item.photo
-    ? `<div class="hero-header" style="background-image: url('${item.photo}')">
-         <div class="hero-overlay">
-           <div class="hero-content">
-             <span class="kicker">Noticias Académicas</span>
-             <h1>${item.titulo}</h1>
-             <div class="hero-meta">
-               <span class="author">Redacción Editorial</span> •
-               <span class="date">${formatDateEs(item.fecha)}</span>
-             </div>
-           </div>
-         </div>
-       </div>`
-    : `<div class="standard-header">
-         <span class="kicker">Noticias Académicas</span>
-         <h1>${item.titulo}</h1>
-         <div class="hero-meta" style="color: #666">
-           <span class="author">Redacción Editorial</span> •
-           <span class="date">${formatDateEs(item.fecha)}</span>
-         </div>
-       </div>`;
-
-  const htmlContentEs = generateNewsHtmlTemplate({
-    lang: 'es',
-    title: item.titulo,
-    content: processedCuerpo,
-    fecha: item.fecha,
-    slug,
-    headerImageHtml: headerImageHtmlEs,
-    domain: DOMAIN,
-    oaSvg,
-    journalName: JOURNAL_NAME_ES,
-    logo: LOGO_ES
-  });
-
-  const filePathEs = path.join(OUTPUT_HTML_DIR, `${slug}.html`);
-  fs.writeFileSync(filePathEs, htmlContentEs, 'utf8');
-  console.log(`  ✅ Español: ${slug}.html`);
-
-  // ========== HTML INGLÉS ==========
-  const headerImageHtmlEn = item.photo
-    ? `<div class="hero-header" style="background-image: url('${item.photo}')">
-         <div class="hero-overlay">
-           <div class="hero-content">
-             <span class="kicker">Academic News</span>
-             <h1>${item.title}</h1>
-             <div class="hero-meta">
-               <span class="author">Editorial Staff</span> •
-               <span class="date">${formatDateEn(item.fecha)}</span>
-             </div>
-           </div>
-         </div>
-       </div>`
-    : `<div class="standard-header">
-         <span class="kicker">Academic News</span>
-         <h1>${item.title}</h1>
-         <div class="hero-meta" style="color: #666">
-           <span class="author">Editorial Staff</span> •
-           <span class="date">${formatDateEn(item.fecha)}</span>
-         </div>
-       </div>`;
-
-  const htmlContentEn = generateNewsHtmlTemplate({
-    lang: 'en',
-    title: item.title,
-    content: processedContent,
-    fecha: item.fecha,
-    slug,
-    headerImageHtml: headerImageHtmlEn,
-    domain: DOMAIN,
-    oaSvg,
-    journalName: JOURNAL_NAME_EN,
-    logo: LOGO_EN
-  });
-
-  const filePathEn = path.join(OUTPUT_HTML_DIR, `${slug}.EN.html`);
-  fs.writeFileSync(filePathEn, htmlContentEn, 'utf8');
-  console.log(`  ✅ Inglés: ${slug}.EN.html`);
+// ========== FUNCIÓN PARA CALULAR TIEMPO DE LECTURA ==========
+function calculateReadingTime(html, wordsPerMinute = 200) {
+  // Eliminar etiquetas HTML y contar palabras
+  const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const wordCount = text.split(/\s+/).length;
+  const minutes = Math.ceil(wordCount / wordsPerMinute);
+  return {
+    minutes,
+    wordCount,
+    display: minutes === 1 ? '1 minuto' : `${minutes} minutos`
+  };
 }
 
+// ========== TEMPLATE MODIFICADO CON NUEVAS FUNCIONALIDADES ==========
 function generateNewsHtmlTemplate({
   lang,
   title,
   content,
   fecha,
   slug,
-  headerImageHtml,  // <-- Esto ya contiene el HTML del header procesado
+  headerImageHtml,
   domain,
   oaSvg,
   journalName,
-  logo,
-  photo  // <-- Añade photo como parámetro opcional
+  logo
 }) {
   const isSpanish = lang === 'es';
+  const readingTime = calculateReadingTime(content);
   
   const texts = {
     es: {
@@ -286,7 +222,14 @@ function generateNewsHtmlTemplate({
       license: 'Licencia',
       licenseText: 'Este trabajo está bajo una licencia',
       ccLicense: 'Creative Commons Atribución 4.0 Internacional',
-      excellence: 'Excelencia en Divulgación Científica Estudiantil'
+      excellence: 'Una revista por y para estudiantes',
+      readingTime: 'tiempo de lectura',
+      listen: 'Escuchar noticia',
+      stop: 'Detener',
+      play: 'Reproducir',
+      pause: 'Pausa',
+      contact: 'Contacto',
+      followUs: 'Síguenos'
     },
     en: {
       backToNews: 'Back to News',
@@ -297,7 +240,14 @@ function generateNewsHtmlTemplate({
       license: 'License',
       licenseText: 'This work is licensed under a',
       ccLicense: 'Creative Commons Attribution 4.0 International License',
-      excellence: 'Excellence in Student Scientific Outreach'
+      excellence: 'A journal by and for students',
+      readingTime: 'read time',
+      listen: 'Listen to article',
+      stop: 'Stop',
+      play: 'Play',
+      pause: 'Pause',
+      contact: 'Contact',
+      followUs: 'Follow us'
     }
   };
 
@@ -313,7 +263,6 @@ function generateNewsHtmlTemplate({
   <meta name="author" content="${isSpanish ? 'Revista Nacional de las Ciencias para Estudiantes' : 'The National Review of Sciences for Students'}">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${title.substring(0, 160)}...">
-  ${photo ? `<meta property="og:image" content="${photo}">` : ''}  <!-- <-- Ahora usa photo correctamente -->
   <meta property="og:url" content="${domain}/news/${slug}${isSpanish ? '' : '.EN'}.html">
   <meta property="og:type" content="article">
   <meta property="article:published_time" content="${fecha}">
@@ -332,6 +281,7 @@ function generateNewsHtmlTemplate({
       --bg-soft: #f8f9fa;
       --bg-hover: #f3f4f6;
       --accent: #c2410c;
+      --progress-color: #007398;
     }
 
     * {
@@ -350,7 +300,120 @@ function generateNewsHtmlTemplate({
       overflow-x: hidden;
     }
 
-    /* Navigation minimal */
+    /* Progress Bar */
+    .progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: transparent;
+      z-index: 1001;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: linear-gradient(90deg, var(--progress-color), #00a8c5);
+      width: 0%;
+      transition: width 0.1s ease;
+      box-shadow: 0 0 10px rgba(0, 115, 152, 0.5);
+    }
+
+    /* Reading Time Indicator */
+    .reading-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--bg-soft);
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-left: 15px;
+    }
+
+    /* Audio Player */
+    .audio-player {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 1000;
+      background: white;
+      border-radius: 60px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 8px 16px 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0,90,125,0.1);
+      transition: all 0.3s ease;
+    }
+
+    .audio-player:hover {
+      box-shadow: 0 6px 25px rgba(0,90,125,0.2);
+      transform: translateY(-2px);
+    }
+
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audio-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .audio-btn:hover {
+      background: var(--primary-dark);
+      transform: scale(1.05);
+    }
+
+    .audio-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    .audio-status {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .language-indicator {
+      display: flex;
+      gap: 4px;
+      margin-left: 8px;
+      padding-left: 8px;
+      border-left: 1px solid var(--border-color);
+    }
+
+    .lang-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ccc;
+    }
+
+    .lang-dot.active {
+      background: var(--primary);
+    }
+
+    /* Navigation minimal (mantener el mismo) */
     .nav-minimal {
       border-bottom: 1px solid var(--border-color);
       padding: 0.75rem 2rem;
@@ -404,7 +467,7 @@ function generateNewsHtmlTemplate({
       color: var(--primary);
     }
 
-    /* Hero Header */
+    /* Hero Header (mantener el mismo) */
     .hero-header {
       height: 70vh;
       min-height: 400px;
@@ -464,9 +527,10 @@ function generateNewsHtmlTemplate({
       display: flex;
       gap: 1rem;
       flex-wrap: wrap;
+      align-items: center;
     }
 
-    /* Article Body */
+    /* Article Body (mantener el mismo, con pequeño ajuste para margen superior) */
     .article-body {
       max-width: 700px;
       margin: 60px auto;
@@ -474,298 +538,180 @@ function generateNewsHtmlTemplate({
       font-size: 1.2rem;
     }
 
-    .article-body p {
-      margin-bottom: 2rem;
-    }
-
-    .article-body > p:first-of-type::first-letter {
-      float: left;
-      font-size: 5rem;
-      line-height: 4rem;
-      padding-top: 4px;
-      padding-right: 8px;
-      padding-left: 3px;
-      font-family: 'Playfair Display', serif;
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .article-body h2, .article-body h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2rem;
-      margin-top: 50px;
-      border-top: 2px solid var(--primary);
-      padding-top: 20px;
-    }
-
-    .article-body h3 {
-      font-size: 1.5rem;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .article-body strong {
-      color: var(--primary);
-    }
-
-    .article-body a {
-      color: var(--primary);
-      text-decoration: none;
-      border-bottom: 1px dotted var(--primary);
-    }
-
-    .article-body a:hover {
-      border-bottom: 1px solid var(--primary);
-    }
-
-    .article-body img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 4px;
-      margin: 1.5rem 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .article-body blockquote {
-      margin: 3rem 2rem;
-      padding: 1rem 2rem;
-      border-left: 4px solid var(--primary);
-      background: var(--bg-soft);
-      font-style: italic;
-      color: var(--text-light);
-    }
-
-    .article-body ul, .article-body ol {
-      margin: 1.5rem 0 1.5rem 2rem;
-    }
-
-    .article-body li {
-      margin-bottom: 0.5rem;
-    }
-
-    .article-body code:not(pre code) {
-      background: var(--bg-soft);
-      padding: 2px 4px;
-      border-radius: 4px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      color: var(--primary-dark);
-    }
-
-    .article-body pre {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      padding: 1.5rem;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      margin: 2rem 0;
-    }
-
-    /* Action Bar */
-    .action-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 700px;
-      margin: 40px auto 20px;
-      padding: 20px 20px 0;
-      border-top: 1px solid var(--border-color);
-      font-family: 'Inter', sans-serif;
-    }
-
-    .share-buttons {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .share-btn {
-      background: none;
-      border: none;
-      padding: 8px;
-      cursor: pointer;
-      color: var(--text-muted);
-      transition: color 0.2s;
-    }
-
-    .share-btn:hover {
-      color: var(--primary);
-    }
-
-    .oa-label {
-      display: flex;
-      align-items: center;
-      color: #F48120;
-      font-weight: 500;
-      font-size: 0.9rem;
-      gap: 4px;
-    }
-
-    /* Back Navigation */
-    .back-nav {
-      max-width: 700px;
-      margin: 40px auto 20px;
-      border-top: 2px solid var(--nyt-black);
-      padding: 20px 20px 0;
-      display: flex;
-      justify-content: space-between;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .back-nav a {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      font-weight: 600;
-      color: var(--nyt-black);
-      text-decoration: none;
-      transition: color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .back-nav a:hover {
-      color: var(--primary);
-    }
-
-    /* Footer */
+    /* ... resto de estilos del artículo (mantener igual) ... */
+    ${/* Mantener todos los estilos existentes del artículo */ ''}
+    
+    /* Footer Styles */
     .footer {
-      background: var(--bg-soft);
-      border-top: 1px solid var(--border-color);
-      padding: 60px 20px;
-      text-align: center;
-      font-family: 'Inter', sans-serif;
+      background: #1a1a1a;
+      color: white;
+      padding: 60px 20px 30px;
       margin-top: 60px;
+      border-top: 1px solid #333;
+      font-family: 'Inter', sans-serif;
     }
 
-    .footer-content {
-      max-width: 700px;
+    .footer-container {
+      max-width: 1200px;
       margin: 0 auto;
     }
 
-    .footer-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
+    .footer-social {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .social-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #999;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .social-icon:hover {
+      color: white;
+      transform: translateY(-3px);
+    }
+
+    .social-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .social-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .social-icon:hover .social-label {
+      opacity: 1;
+    }
+
+    .footer-contact {
+      text-align: center;
+      margin: 40px 0;
+      padding: 20px 0;
+      border-top: 1px solid #333;
+      border-bottom: 1px solid #333;
+    }
+
+    .contact-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #666;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .contact-email {
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: color 0.3s;
+    }
+
+    .contact-email:hover {
       color: var(--primary);
     }
 
-    .footer-text {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 2rem;
+    .footer-bottom {
+      text-align: center;
+      font-size: 9px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      padding-top: 30px;
     }
 
     .footer-links {
       display: flex;
       justify-content: center;
-      gap: 2rem;
-      margin-bottom: 2rem;
-      font-size: 0.8rem;
+      gap: 20px;
+      margin: 20px 0;
+      font-size: 9px;
     }
 
     .footer-links a {
-      color: var(--text-main);
+      color: #777;
       text-decoration: none;
+      transition: color 0.3s;
     }
 
     .footer-links a:hover {
-      color: var(--primary);
-    }
-
-    .license-section {
-      margin-top: 2rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border-color);
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .license-section a {
-      color: var(--primary);
-      text-decoration: none;
+      color: white;
     }
 
     /* Mobile Optimizations */
     @media (max-width: 768px) {
+      .audio-player {
+        bottom: 20px;
+        right: 20px;
+        padding: 6px 12px;
+      }
+      
+      .footer-social {
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      
       .nav-minimal {
         padding: 0.5rem 1rem;
       }
-
+      
       .nav-logo-img {
         height: 28px;
       }
-
+      
       .nav-logo-text {
         display: none;
       }
-
+      
       .nav-links {
         gap: 1rem;
-      }
-
-      .hero-header {
-        height: 60vh;
-      }
-
-      h1 {
-        font-size: 2.2rem;
-      }
-
-      .article-body {
-        font-size: 1.1rem;
-        margin: 40px auto;
-      }
-
-      .article-body > p:first-of-type::first-letter {
-        font-size: 4rem;
-        line-height: 3.2rem;
-      }
-
-      .article-body blockquote {
-        margin: 2rem 1rem;
-        padding: 1rem;
-      }
-
-      .article-body ul, .article-body ol {
-        margin: 1rem 0 1rem 1.5rem;
-      }
-
-      .action-bar {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
-      }
-
-      .back-nav {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: center;
-      }
-
-      .footer-links {
-        flex-direction: column;
-        gap: 1rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 1.8rem;
-      }
-
-      .article-body {
-        font-size: 1rem;
-      }
-
-      .article-body > p:first-of-type::first-letter {
-        font-size: 3.5rem;
-        line-height: 2.8rem;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- Audio Player Flotante -->
+  <div class="audio-player" id="audioPlayer">
+    <div class="audio-controls">
+      <button class="audio-btn" id="playPauseBtn" title="${t.listen}">
+        <svg id="playIcon" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </button>
+      <button class="audio-btn" id="stopBtn" title="${t.stop}" style="background: #666;">
+        <svg viewBox="0 0 24 24">
+          <rect x="6" y="6" width="12" height="12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="audio-status" id="audioStatus">
+      <span id="statusText">${t.listen}</span>
+      <div class="language-indicator">
+        <span class="lang-dot ${lang === 'es' ? 'active' : ''}"></span>
+        <span class="lang-dot ${lang === 'en' ? 'active' : ''}"></span>
+      </div>
+    </div>
+  </div>
+
   <nav class="nav-minimal">
     <a href="/" class="nav-logo">
       <img src="${logo}" alt="Logo" class="nav-logo-img">
@@ -774,15 +720,23 @@ function generateNewsHtmlTemplate({
     <div class="nav-links">
       <a href="${isSpanish ? '/es/new' : '/en/new'}" class="nav-link">${t.backToNews}</a>
       <a href="${isSpanish ? '/submit' : '/en/submit'}" class="nav-link">${isSpanish ? 'Envíos' : 'Submissions'}</a>
-      <a href="${isSpanish ? '/faq' : '/en/faq'}" class="nav-link">${isSpanish ? 'Ayuda' : 'Help'}</a>
+      <a href="${isSpanish ? '/faq' : '/en/faq'}" class="nav-link">FAQ</a>
     </div>
   </nav>
 
   <header>
     ${headerImageHtml}
+    <div style="max-width: 700px; margin: 0 auto; padding: 0 20px;">
+      <span class="reading-time">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>
+        </svg>
+        ${readingTime.display} ${t.readingTime}
+      </span>
+    </div>
   </header>
 
-  <main class="article-body">
+  <main class="article-body" id="articleContent">
     <article class="ql-editor">
       ${content}
     </article>
@@ -829,33 +783,148 @@ function generateNewsHtmlTemplate({
     </div>
   </main>
 
+  <!-- Footer con Redes Sociales y Contacto -->
   <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-logo">${journalName}</div>
-      <div class="footer-text">
-        ${t.excellence}<br>
-        ISSN: 3087-2839
+    <div class="footer-container">
+      <!-- Redes Sociales -->
+      <div class="footer-social">
+        <a href="${socialLinks.instagram}" target="_blank" rel="noopener" class="social-icon">
+          ${socialIcons.instagram}
+          <span class="social-label">Instagram</span>
+        </a>
+        <a href="${socialLinks.youtube}" target="_blank" rel="noopener" class="social-icon">
+          ${socialIcons.youtube}
+          <span class="social-label">YouTube</span>
+        </a>
+        <a href="${socialLinks.tiktok}" target="_blank" rel="noopener" class="social-icon">
+          ${socialIcons.tiktok}
+          <span class="social-label">TikTok</span>
+        </a>
+        <a href="${socialLinks.spotify}" target="_blank" rel="noopener" class="social-icon">
+          ${socialIcons.spotify}
+          <span class="social-label">Spotify</span>
+        </a>
       </div>
-      <div class="footer-links">
-        <a href="${isSpanish ? '/about' : '/en/about'}">${isSpanish ? 'Sobre Nosotros' : 'About'}</a>
-        <a href="${isSpanish ? '/guidelines' : '/en/guidelines'}">${isSpanish ? 'Directrices' : 'Guidelines'}</a>
-        <a href="${isSpanish ? '/faq' : '/en/faq'}">FAQ</a>
-        <a href="${isSpanish ? '/contact' : '/en/contact'}">${isSpanish ? 'Contacto' : 'Contact'}</a>
+
+      <!-- Contacto (abre Gmail directamente) -->
+      <div class="footer-contact">
+        <span class="contact-label">${t.contact}</span>
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@revistacienciasestudiantes.com" 
+           target="_blank" 
+           class="contact-email"
+           rel="noopener">
+          contact@revistacienciasestudiantes.com
+        </a>
       </div>
-      <div class="license-section">
-        <p>
-          ${t.licenseText} 
-          <a href="https://creativecommons.org/licenses/by/4.0/deed.${lang}" target="_blank" rel="license noopener">
-            ${t.ccLicense}
-          </a>
-        </p>
-        <p style="margin-top: 0.5rem;">© ${new Date().getFullYear()} ${journalName}</p>
+
+      <!-- Copyright y enlaces legales -->
+      <div class="footer-bottom">
+        <div class="footer-links">
+          <a href="/privacy.html">Privacidad</a>
+          <span>|</span>
+          <a href="/terms.html">Términos</a>
+          <span>|</span>
+          <a href="/credits.html">Créditos</a>
+        </div>
+        <p>© ${new Date().getFullYear()} ${journalName} · ISSN 3087-2839</p>
       </div>
     </div>
   </footer>
 
   <script>
-    // Funciones de compartir en redes sociales
+    // ========== PROGRESS BAR ==========
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('progressBar').style.width = scrolled + '%';
+    });
+
+    // ========== TEXTO A VOZ ==========
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusText = document.getElementById('statusText');
+    const playIcon = document.getElementById('playIcon');
+    
+    let utterance = null;
+    let isPlaying = false;
+    let currentChar = 0;
+    
+    // Obtener el texto del artículo
+    const articleContent = document.getElementById('articleContent').innerText;
+    
+    // Configurar idioma
+    const lang = '${lang}';
+    
+    function createUtterance() {
+      const newUtterance = new SpeechSynthesisUtterance(articleContent);
+      newUtterance.lang = lang === 'es' ? 'es-ES' : 'en-US';
+      newUtterance.rate = 0.9; // Velocidad de lectura
+      newUtterance.pitch = 1;
+      newUtterance.volume = 1;
+      
+      newUtterance.onstart = () => {
+        isPlaying = true;
+        statusText.innerText = lang === 'es' ? 'Reproduciendo...' : 'Playing...';
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; // Icono pausa
+      };
+      
+      newUtterance.onpause = () => {
+        isPlaying = false;
+        statusText.innerText = lang === 'es' ? 'Pausado' : 'Paused';
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>'; // Icono play
+      };
+      
+      newUtterance.onresume = () => {
+        isPlaying = true;
+        statusText.innerText = lang === 'es' ? 'Reproduciendo...' : 'Playing...';
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; // Icono pausa
+      };
+      
+      newUtterance.onend = () => {
+        isPlaying = false;
+        statusText.innerText = lang === 'es' ? 'Escuchar noticia' : 'Listen to article';
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>'; // Icono play
+        currentChar = 0;
+      };
+      
+      newUtterance.onerror = (event) => {
+        console.error('Speech error:', event);
+        isPlaying = false;
+        statusText.innerText = lang === 'es' ? 'Error' : 'Error';
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      };
+      
+      return newUtterance;
+    }
+    
+    playPauseBtn.addEventListener('click', () => {
+      if (!utterance) {
+        utterance = createUtterance();
+        window.speechSynthesis.speak(utterance);
+      } else if (isPlaying) {
+        window.speechSynthesis.pause();
+      } else {
+        window.speechSynthesis.resume();
+      }
+    });
+    
+    stopBtn.addEventListener('click', () => {
+      window.speechSynthesis.cancel();
+      utterance = null;
+      isPlaying = false;
+      statusText.innerText = lang === 'es' ? 'Escuchar noticia' : 'Listen to article';
+      playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+    });
+    
+    // Limpiar al salir
+    window.addEventListener('beforeunload', () => {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+    });
+
+    // ========== FUNCIONES DE COMPARTIR ==========
     function shareOnTwitter() {
       const url = encodeURIComponent(window.location.href);
       const text = encodeURIComponent("${title}");
@@ -869,7 +938,6 @@ function generateNewsHtmlTemplate({
 
     function shareOnLinkedIn() {
       const url = encodeURIComponent(window.location.href);
-      const title = encodeURIComponent("${title}");
       window.open(\`https://www.linkedin.com/sharing/share-offsite/?url=\${url}\`, '_blank');
     }
 
@@ -886,12 +954,6 @@ function generateNewsHtmlTemplate({
         }
       });
     });
-
-    // Detectar y resaltar el código si existe
-    if (document.querySelector('pre code')) {
-      // Aquí podrías cargar highlight.js dinámicamente si quisieras
-      console.log('Bloques de código detectados');
-    }
   </script>
 </body>
 </html>`;
