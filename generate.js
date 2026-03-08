@@ -685,7 +685,7 @@ function generateNewsHtmlTemplate({
       text-transform: uppercase;
       font-size: 0.7rem;
       letter-spacing: 3px;
-      color: var(--primary);
+      color: #f7d30c;
       margin-bottom: 15px;
     }
 
