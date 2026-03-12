@@ -365,18 +365,19 @@ function generateNewsHtmlTemplate({
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #005a7d;
-      --primary-dark: #003e56;
-      --nyt-black: #121212;
-      --text-main: #222222;
-      --text-light: #595959;
-      --text-muted: #6b7280;
-      --border-color: #e5e7eb;
-      --bg-soft: #f8f9fa;
-      --bg-hover: #f3f4f6;
-      --accent: #c2410c;
-      --progress-color: #007398;
-    }
+    --primary: #005a7d;
+    --primary-dark: #003e56;
+    --nyt-black: #121212;
+    --text-main: #222222;
+    --text-light: #595959;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
+    --bg-soft: #f8f9fa;
+    --bg-hover: #f3f4f6;
+    --accent: #c2410c;
+    --progress-color: #007398;
+    --proof-bg: #fafaf8;  /* Esta es nueva */
+}
 
     * {
       max-width: 100vw;
@@ -976,7 +977,178 @@ function generateNewsHtmlTemplate({
     .contact-email:hover {
       color: var(--primary);
     }
+/* ========== TABLAS CON ESTILO ACADÉMICO ========== */
+.article-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 45px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--text-main);
+    border-top: 2px solid var(--primary); /* Línea superior gruesa con color primario */
+    border-bottom: 1px solid var(--border-color); /* Cierre sutil */
+    overflow-x: auto;
+    display: block;
+}
 
+.article-body table th {
+    background: transparent;
+    color: var(--text-main);
+    padding: 12px 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--primary); /* Línea debajo de los encabezados */
+}
+
+.article-body table td {
+    padding: 14px 10px;
+    border: none;
+    border-bottom: 1px solid var(--border-color); /* Solo líneas horizontales finas */
+}
+
+/* Alineación de números a la derecha para mejor lectura comparativa */
+.article-body table td.number, 
+.article-body table th.number {
+    text-align: right;
+    font-variant-numeric: tabular-nums; /* Números alineados perfectamente */
+}
+
+.article-body table tr:hover {
+    background: var(--bg-hover); /* Feedback sutil al pasar el mouse */
+}
+
+.article-body table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Responsive: permitir scroll horizontal en tablas grandes */
+@media (max-width: 768px) {
+    .article-body table {
+        font-size: 14px;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .article-body table td, 
+    .article-body table th {
+        padding: 10px 8px;
+        white-space: nowrap; /* Evita que el texto se rompa en móviles */
+    }
+    
+    /* Primera columna puede mantener texto normal */
+    .article-body table td:first-child {
+        white-space: normal;
+    }
+}
+    /* ========== ESTILOS PARA MATEMÁTICAS ========== */
+.article-body .math {
+    font-family: "Source Serif 4", serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    text-align: center;
+    margin: 35px 0;
+    color: var(--text-main);
+    overflow-x: auto;
+    padding: 10px 0;
+}
+
+/* Bloques de definiciones y teoremas (opcional, para dar más variedad) */
+.article-body .definition,
+.article-body .theorem,
+.article-body .proof,
+.article-body .example {
+    margin: 40px 0;
+    padding: 25px 30px;
+    position: relative;
+    border: 1px solid var(--border-color);
+    background: var(--bg-soft);
+    border-radius: 0 4px 4px 0;
+    border-left: 4px solid var(--primary);
+}
+
+.article-body .proof {
+    background: var(--proof-bg, #fafaf8);
+    border-left-color: var(--text-muted);
+}
+
+.article-body .definition .label,
+.article-body .theorem .label,
+.article-body .proof .label,
+.article-body .example .label {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    color: var(--text-muted);
+}
+
+.article-body .proof::after {
+    content: "∎";
+    float: right;
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-top: -10px;
+}
+
+.article-body .step-box {
+    background: white;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 3px solid var(--primary);
+    font-size: 1rem;
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.article-body .step-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    color: var(--text-muted);
+}
+
+.article-body .sidenote {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 15px 0;
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.02);
+    border-radius: 4px;
+    border-left: 2px solid var(--border-color);
+}
+
+.article-body .key-concept {
+    background: linear-gradient(120deg, rgba(0,90,125,0.08) 0%, rgba(0,90,125,0.02) 100%);
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    border-bottom: 1px dashed var(--primary);
+    display: inline-block;
+}
+
+/* Mejora para el primer párrafo (drop cap) */
+.article-body > p:first-of-type::first-letter {
+    float: left;
+    font-size: 5rem;
+    line-height: 4rem;
+    padding-top: 4px;
+    padding-right: 8px;
+    padding-left: 3px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    color: var(--primary);
+}
     .footer-bottom {
       text-align: center;
       font-size: 9px;
@@ -1034,6 +1206,24 @@ function generateNewsHtmlTemplate({
       }
     }
   </style>
+  <!-- MathJax para renderizado de ecuaciones -->
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['\\(', '\\)']],
+      displayMath: [['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
 </head>
 <body>
   <!-- Progress Bar -->
