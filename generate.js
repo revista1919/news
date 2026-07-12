@@ -644,7 +644,419 @@ function generateNewsHtmlTemplate({
     .nav-link:hover {
       color: var(--primary);
     }
+/* ========== HEADINGS H4, H5, H6 ========== */
+.article-body h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-top: 35px;
+    margin-bottom: 12px;
+    color: var(--text-main);
+    letter-spacing: -0.01em;
+}
 
+.article-body h5 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: var(--primary-dark);
+    letter-spacing: 0.02em;
+}
+
+.article-body h6 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-top: 25px;
+    margin-bottom: 8px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* ========== LISTAS ANIDADAS ========== */
+.article-body ul,
+.article-body ol {
+    margin: 1.5rem 0 1.5rem 1.8rem;
+}
+
+/* Estilo para listas anidadas (profundidad 2) */
+.article-body ul ul,
+.article-body ol ol,
+.article-body ul ol,
+.article-body ol ul {
+    margin: 0.5rem 0 0.5rem 1.8rem;
+}
+
+/* Estilo para listas anidadas (profundidad 3) */
+.article-body ul ul ul,
+.article-body ol ol ol,
+.article-body ul ol ul,
+.article-body ol ul ol {
+    margin: 0.3rem 0 0.3rem 1.8rem;
+}
+
+/* Marcadores de lista mejorados */
+.article-body ul {
+    list-style-type: none;
+}
+
+.article-body ul > li {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.article-body ul > li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.2em;
+}
+
+/* Nivel 2: círculo hueco */
+.article-body ul ul > li::before {
+    content: "○";
+    color: var(--text-muted);
+    font-size: 1em;
+}
+
+/* Nivel 3: guión */
+.article-body ul ul ul > li::before {
+    content: "–";
+    color: var(--text-light);
+    font-size: 1em;
+}
+
+/* Listas ordenadas con números romanos para anidadas */
+.article-body ol {
+    list-style-type: decimal;
+}
+
+.article-body ol ol {
+    list-style-type: lower-alpha;
+}
+
+.article-body ol ol ol {
+    list-style-type: lower-roman;
+}
+
+/* Espaciado entre items de lista */
+.article-body li {
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+}
+
+.article-body li:last-child {
+    margin-bottom: 0;
+}
+
+/* ========== LISTAS CON ESTILO DE NOTA ========== */
+.article-body .list-check {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.article-body .list-check li {
+    padding-left: 2rem;
+    position: relative;
+}
+
+.article-body .list-check li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.article-body .list-cross {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.article-body .list-cross li {
+    padding-left: 2rem;
+    position: relative;
+}
+
+.article-body .list-cross li::before {
+    content: "✗";
+    position: absolute;
+    left: 0;
+    color: #c2410c;
+    font-weight: 700;
+}
+
+.article-body .list-numbered {
+    counter-reset: list-counter;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.article-body .list-numbered li {
+    padding-left: 2.5rem;
+    position: relative;
+    counter-increment: list-counter;
+}
+
+.article-body .list-numbered li::before {
+    content: counter(list-counter) ".";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ========== BLOQUES DE CITA CON AUTOR ========== */
+.article-body blockquote {
+    margin: 3rem 2rem;
+    padding: 1.5rem 2rem;
+    border-left: 4px solid var(--primary);
+    background: var(--bg-soft);
+    font-style: italic;
+    color: var(--text-light);
+    position: relative;
+}
+
+.article-body blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.article-body blockquote footer,
+.article-body blockquote .attribution {
+    margin-top: 1rem;
+    font-style: normal;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.article-body blockquote footer::before,
+.article-body blockquote .attribution::before {
+    content: "— ";
+}
+
+/* ========== IMÁGENES CON PIE DE FOTO ========== */
+.article-body figure {
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.article-body figure img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin: 0 auto;
+}
+
+.article-body figcaption {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.75rem;
+    text-align: left;
+    padding: 0 0.5rem;
+}
+
+/* ========== NOTAS AL PIE (FOOTNOTES) ========== */
+.article-body .footnote {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: 3rem;
+}
+
+.article-body .footnote p {
+    margin-bottom: 0.5rem;
+}
+
+.article-body .footnote sup {
+    color: var(--primary);
+    font-size: 0.75rem;
+}
+
+/* ========== CAJAS DE ADVERTENCIA / NOTA ========== */
+.article-body .note-box,
+.article-body .warning-box,
+.article-body .tip-box {
+    margin: 2rem 0;
+    padding: 1.5rem 2rem;
+    border-radius: 4px;
+    position: relative;
+}
+
+.article-body .note-box {
+    background: #f0f7ff;
+    border-left: 4px solid #2563eb;
+}
+
+.article-body .warning-box {
+    background: #fff8f0;
+    border-left: 4px solid #d97706;
+}
+
+.article-body .tip-box {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+}
+
+.article-body .note-box::before,
+.article-body .warning-box::before,
+.article-body .tip-box::before {
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.article-body .note-box::before {
+    content: "📝 Nota";
+    color: #2563eb;
+}
+
+.article-body .warning-box::before {
+    content: "⚠️ Atención";
+    color: #d97706;
+}
+
+.article-body .tip-box::before {
+    content: "💡 Consejo";
+    color: #16a34a;
+}
+
+.article-body .note-box p:last-child,
+.article-body .warning-box p:last-child,
+.article-body .tip-box p:last-child {
+    margin-bottom: 0;
+}
+
+/* ========== ENLACES EXTERNOS ========== */
+.article-body a[target="_blank"]::after {
+    content: " ↗";
+    font-size: 0.75em;
+    color: var(--text-muted);
+}
+
+.article-body a[href^="http"]:not([href*="revistacienciasestudiantes.com"])::after {
+    content: " ↗";
+    font-size: 0.75em;
+    color: var(--text-muted);
+}
+
+/* ========== TEXTO PEQUEÑO Y SUBÍNDICES ========== */
+.article-body small {
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.article-body sub {
+    font-size: 0.7em;
+    vertical-align: sub;
+}
+
+.article-body sup {
+    font-size: 0.7em;
+    vertical-align: super;
+}
+
+/* ========== ABREVIATURAS ========== */
+.article-body abbr {
+    border-bottom: 1px dotted var(--text-muted);
+    cursor: help;
+}
+
+/* ========== DESTACADOS ========== */
+.article-body .highlight {
+    background: linear-gradient(120deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
+}
+
+.article-body .text-primary {
+    color: var(--primary);
+}
+
+.article-body .text-muted {
+    color: var(--text-muted);
+}
+
+/* ========== RESPONSIVE PARA DISPOSITIVOS MÓVILES ========== */
+@media (max-width: 768px) {
+    .article-body h4 {
+        font-size: 1.15rem;
+    }
+    
+    .article-body h5 {
+        font-size: 1rem;
+    }
+    
+    .article-body h6 {
+        font-size: 0.85rem;
+    }
+    
+    .article-body ul,
+    .article-body ol {
+        margin-left: 1.2rem;
+    }
+    
+    .article-body ul ul,
+    .article-body ol ol,
+    .article-body ul ol,
+    .article-body ol ul {
+        margin-left: 1.2rem;
+    }
+    
+    .article-body blockquote {
+        margin: 2rem 1rem;
+        padding: 1rem 1.5rem;
+    }
+    
+    .article-body .note-box,
+    .article-body .warning-box,
+    .article-body .tip-box {
+        padding: 1rem 1.25rem;
+    }
+    
+    .article-body .list-check li,
+    .article-body .list-cross li,
+    .article-body .list-numbered li {
+        padding-left: 1.8rem;
+    }
+}
+
+/* ========== SOPORTE PARA DARK MODE (OPCIONAL) ========== */
+@media (prefers-color-scheme: dark) {
+    .article-body .note-box {
+        background: #1a2533;
+        border-left-color: #60a5fa;
+    }
+    
+    .article-body .warning-box {
+        background: #2a1f0f;
+        border-left-color: #fbbf24;
+    }
+    
+    .article-body .tip-box {
+        background: #0f2a1a;
+        border-left-color: #4ade80;
+    }
+    
+    .article-body blockquote {
+        background: var(--bg-soft);
+        color: var(--text-light);
+    }
+}
     /* Hero Header (mantener el mismo) */
     .hero-header {
       height: 70vh;
