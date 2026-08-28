@@ -517,17 +517,53 @@ function generateNewsHtmlTemplate({
 
     /* ========== ARTICLE BODY ========== */
     .article-body {
-      font-size: 1.18rem; color: var(--text-body);
+      font-size: 1.18rem; 
+      color: var(--text-body);
       max-width: 100%;
     }
-    .article-body p { margin-bottom: 1.7rem; }
+    .article-body p { 
+      margin-bottom: 1.7rem; 
+    }
+
+    /* ========== DROP CAP ELEGANTE Y PROFESIONAL ========== */
+    /* Inspirado en mejores prácticas de revistas de alto nivel:
+       - 3 líneas de alto (no más)
+       - Márgenes muy controlados
+       - Color cercano al texto
+       - Uso de initial-letter moderno + fallback */
     .article-body > p:first-of-type::first-letter {
       float: left;
-      font-family: 'Merriweather', serif;
-      font-size: 4.6rem; line-height: 3.6rem;
-      padding-top: 6px; padding-right: 10px; padding-left: 2px;
-      font-weight: 900; color: var(--nyt-black);
+      font-family: 'Merriweather', Georgia, serif;
+      font-weight: 900;
+      font-size: 3.65rem;
+      line-height: 0.82;
+      padding-top: 0.08em;
+      padding-right: 0.12em;
+      padding-left: 0.02em;
+      margin-right: 0.08em;
+      margin-bottom: -0.08em;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
     }
+
+    /* Soporte moderno con initial-letter (mejor alineación) */
+    @supports (initial-letter: 3) or (-webkit-initial-letter: 3) {
+      .article-body > p:first-of-type::first-letter {
+        -webkit-initial-letter: 3;
+        initial-letter: 3;
+        font-size: unset;          /* deja que initial-letter calcule el tamaño */
+        line-height: unset;
+        padding-top: 0;
+        margin-bottom: 0;
+        padding-right: 0.14em;
+      }
+    }
+
+    /* Ajuste fino para que no interrumpa el flujo */
+    .article-body > p:first-of-type {
+      margin-top: 0.15rem;
+    }
+
     .article-body h2 {
       font-family: 'Merriweather', serif;
       font-size: 1.75rem; font-weight: 800;
@@ -962,6 +998,9 @@ function generateNewsHtmlTemplate({
     @media (max-width: 768px) {
       .hero-header { height: 52vh; min-height: 340px; }
       .article-body { font-size: 1.05rem; }
+      .article-body > p:first-of-type::first-letter {
+        font-size: 3.1rem;
+      }
       .audio-player { bottom: 16px; right: 16px; padding: 9px 12px; }
       .nav-logo-text { display: none; }
     }
