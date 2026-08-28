@@ -211,7 +211,6 @@ async function generateNewsHtml(item) {
   console.log(`  ✅ Inglés: ${slug}.EN.html`);
 }
 
-// ========== TEMPLATE PRINCIPAL (EL CORAZÓN) ==========
 function generateNewsHtmlTemplate({
   lang, title, content, fecha, slug, photo, domain, oaSvg, journalName, logo, authorName
 }) {
@@ -251,8 +250,19 @@ function generateNewsHtmlTemplate({
       privacy: 'Privacidad',
       terms: 'Términos',
       contact: 'Contacto',
-      featured: 'Destacada',
-      openAccess: 'Acceso Abierto'
+      openAccess: 'Acceso Abierto',
+      newsletterTitle: 'Suscríbete al Boletín',
+      newsletterText: 'Un resumen esencial de noticias científicas, opinión y análisis, entregado en tu bandeja de entrada.',
+      namePlaceholder: 'Tu nombre completo',
+      emailPlaceholder: 'correo@ejemplo.edu',
+      newsletterBtn: 'Suscribirse',
+      subscribing: 'Procesando...',
+      successTitle: '¡Gracias por suscribirte!',
+      successMessage: 'Recibirás noticias según tus preferencias',
+      alreadySubscribed: 'Este correo ya está suscrito a nuestro boletín',
+      invalidName: 'Por favor ingresa tu nombre',
+      invalidEmail: 'Por favor ingresa un correo válido',
+      generalError: 'Error al procesar la suscripción. Posiblemente ya estás suscrito con este correo'
     },
     en: {
       backToNews: 'Back to News',
@@ -272,8 +282,19 @@ function generateNewsHtmlTemplate({
       privacy: 'Privacy',
       terms: 'Terms',
       contact: 'Contact',
-      featured: 'Featured',
-      openAccess: 'Open Access'
+      openAccess: 'Open Access',
+      newsletterTitle: 'Sign up to the Briefing',
+      newsletterText: 'An essential round-up of science news, opinion and analysis, delivered to your inbox.',
+      namePlaceholder: 'Your full name',
+      emailPlaceholder: 'email@example.edu',
+      newsletterBtn: 'Sign Up',
+      subscribing: 'Processing...',
+      successTitle: 'Thank you for subscribing!',
+      successMessage: 'You will receive news according to your preferences',
+      alreadySubscribed: 'This email is already subscribed to our newsletter',
+      invalidName: 'Please enter your name',
+      invalidEmail: 'Please enter a valid email',
+      generalError: 'Error processing subscription. You are likely already subscribed with this email'
     }
   };
   const t = texts[lang];
@@ -326,6 +347,10 @@ function generateNewsHtmlTemplate({
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+  <!-- Firebase (newsletter) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --nyt-black: #0f172a;
@@ -341,6 +366,8 @@ function generateNewsHtmlTemplate({
       --link: #0369a1;
       --open-access: #f97316;
       --primary: #0f172a;
+      --success: #16a34a;
+      --error: #dc2626;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -354,7 +381,7 @@ function generateNewsHtmlTemplate({
       overflow-x: hidden;
     }
 
-    /* Progress */
+    /* ========== PROGRESS BAR ========== */
     .progress-container {
       position: fixed; top: 0; left: 0; width: 100%; height: 3px;
       background: transparent; z-index: 1002;
@@ -362,16 +389,23 @@ function generateNewsHtmlTemplate({
     .progress-bar {
       height: 3px;
       background: linear-gradient(90deg, var(--accent), #f59e0b);
-      width: 0%; transition: width 0.1s ease;
+      width: 0%; 
+      transition: width 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 12px rgba(234, 88, 12, 0.35);
     }
 
-    /* Nav */
+    /* ========== NAV ========== */
     .site-header {
       border-top: 4px solid var(--nyt-black);
       border-bottom: 1px solid var(--border-light);
-      background: rgba(255,255,255,0.96);
-      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       position: sticky; top: 0; z-index: 100;
+      transition: box-shadow 0.3s ease;
+    }
+    .site-header.scrolled {
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
     }
     .nav-minimal {
       max-width: 1200px; margin: 0 auto;
@@ -382,8 +416,11 @@ function generateNewsHtmlTemplate({
     .nav-logo {
       display: flex; align-items: center; gap: 12px;
       text-decoration: none; color: var(--nyt-black);
+      transition: opacity 0.2s ease;
     }
-    .nav-logo-img { height: 32px; width: auto; }
+    .nav-logo:hover { opacity: 0.85; }
+    .nav-logo-img { height: 32px; width: auto; transition: transform 0.3s ease; }
+    .nav-logo:hover .nav-logo-img { transform: scale(1.04); }
     .nav-logo-text {
       font-weight: 800; font-size: 0.85rem; letter-spacing: -0.02em;
       border-left: 1px solid var(--border-light); padding-left: 12px;
@@ -393,11 +430,20 @@ function generateNewsHtmlTemplate({
       text-decoration: none; color: var(--text-muted);
       font-size: 0.72rem; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.06em;
-      transition: color 0.2s;
+      position: relative;
+      transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 1.5px;
+      background: var(--accent);
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .nav-link:hover { color: var(--nyt-black); }
+    .nav-link:hover::after { width: 100%; }
 
-    /* Hero */
+    /* ========== HERO ========== */
     .hero-header {
       height: 62vh; min-height: 420px; max-height: 620px;
       background-size: cover; background-position: center;
@@ -406,38 +452,49 @@ function generateNewsHtmlTemplate({
     }
     .hero-overlay {
       position: absolute; inset: 0;
-      background: linear-gradient(to bottom, rgba(15,23,42,0.15) 0%, rgba(15,23,42,0.82) 100%);
+      background: linear-gradient(to bottom, rgba(15,23,42,0.18) 0%, rgba(15,23,42,0.85) 100%);
       display: flex; align-items: flex-end;
       padding: 0 24px 56px;
     }
-    .hero-content {
-      max-width: 920px; margin: 0 auto; width: 100%;
-    }
+    .hero-content { max-width: 920px; margin: 0 auto; width: 100%; }
     .kicker {
       font-family: 'Inter', sans-serif;
       font-weight: 800; text-transform: uppercase;
       font-size: 0.72rem; letter-spacing: 0.14em;
       color: #fdba74; margin-bottom: 14px;
+      opacity: 0; transform: translateY(8px);
+      animation: fadeUp 0.6s 0.15s forwards;
     }
     .hero-header h1, .standard-header h1 {
       font-family: 'Merriweather', Georgia, serif;
       font-size: clamp(2.1rem, 4.8vw, 3.4rem);
       line-height: 1.12; font-weight: 900;
       letter-spacing: -0.015em; margin-bottom: 18px;
+      opacity: 0; transform: translateY(12px);
+      animation: fadeUp 0.7s 0.25s forwards;
     }
     .hero-meta {
       font-family: 'Inter', sans-serif;
       font-size: 0.88rem; opacity: 0.92;
       display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      opacity: 0; transform: translateY(8px);
+      animation: fadeUp 0.6s 0.4s forwards;
     }
     .hero-meta .dot { opacity: 0.5; }
     .reading-badge {
-      background: rgba(255,255,255,0.15);
-      padding: 3px 10px; border-radius: 20px;
+      background: rgba(255,255,255,0.14);
+      padding: 4px 12px; border-radius: 20px;
       font-size: 0.78rem; font-weight: 500;
+      backdrop-filter: blur(4px);
+      transition: background 0.25s ease;
+    }
+    .reading-badge:hover { background: rgba(255,255,255,0.22); }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Standard header (sin foto) */
+    /* Standard header */
     .standard-header {
       max-width: 920px; margin: 0 auto;
       padding: 72px 24px 40px; text-align: left;
@@ -446,7 +503,7 @@ function generateNewsHtmlTemplate({
     .standard-header h1 { color: var(--nyt-black); }
     .standard-header .hero-meta { color: var(--text-muted); }
 
-    /* Layout principal */
+    /* ========== LAYOUT ========== */
     .layout-container {
       max-width: 1200px; margin: 48px auto 80px;
       padding: 0 24px;
@@ -458,7 +515,7 @@ function generateNewsHtmlTemplate({
       .layout-container { grid-template-columns: 1fr; gap: 40px; }
     }
 
-    /* Article body */
+    /* ========== ARTICLE BODY ========== */
     .article-body {
       font-size: 1.18rem; color: var(--text-body);
       max-width: 100%;
@@ -489,23 +546,42 @@ function generateNewsHtmlTemplate({
       font-size: 1.1rem; font-weight: 700;
       color: var(--nyt-black); margin: 1.8rem 0 0.7rem;
     }
+
+    /* LINKS PREMIUM */
     .article-body a {
-      color: var(--link); text-decoration: underline;
-      text-decoration-thickness: 1px; text-underline-offset: 3px;
+      color: var(--link);
+      text-decoration: none;
+      background-image: linear-gradient(transparent 0%, transparent calc(100% - 1.5px), var(--link) calc(100% - 1.5px));
+      background-size: 0% 100%;
+      background-repeat: no-repeat;
+      transition: background-size 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s ease;
     }
-    .article-body a:hover { color: var(--nyt-black); }
+    .article-body a:hover {
+      color: var(--nyt-black);
+      background-size: 100% 100%;
+    }
+    .article-body a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
 
     /* Imágenes */
     .article-body img {
       max-width: 100%; height: auto; display: block;
-      margin: 2.2rem auto; border-radius: 3px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      margin: 2.2rem auto; border-radius: 4px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+    }
+    .article-body img:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
     }
     .article-body figure { margin: 2.5rem 0; }
     .article-body figcaption {
       font-family: 'Inter', sans-serif;
       font-size: 0.82rem; color: var(--text-muted);
-      margin-top: 0.7rem; line-height: 1.5;
+      margin-top: 0.75rem; line-height: 1.5;
     }
 
     /* Blockquotes */
@@ -516,72 +592,101 @@ function generateNewsHtmlTemplate({
       background: var(--bg-sidebar);
       font-family: 'Merriweather', serif;
       font-style: italic; font-size: 1.22rem;
-      color: #334155; border-radius: 0 4px 4px 0;
+      color: #334155; border-radius: 0 6px 6px 0;
+      transition: border-color 0.3s ease, background 0.3s ease;
+    }
+    .article-body blockquote:hover {
+      border-left-color: var(--accent);
+      background: #fff7ed;
     }
 
-    /* Tablas académicas */
+    /* Tablas */
     .article-body table {
       width: 100%; border-collapse: collapse;
       margin: 2.8rem 0; font-family: 'Inter', sans-serif;
       font-size: 0.9rem; display: block; overflow-x: auto;
       border-top: 2px solid var(--nyt-black);
       border-bottom: 2px solid var(--nyt-black);
+      border-radius: 4px;
     }
     .article-body table th {
       font-weight: 700; text-align: left;
-      padding: 13px 14px; border-bottom: 1px solid var(--nyt-black);
+      padding: 14px 16px; border-bottom: 1px solid var(--nyt-black);
       text-transform: uppercase; font-size: 0.72rem;
       letter-spacing: 0.06em; color: var(--nyt-black);
       background: #f8fafc; white-space: nowrap;
     }
     .article-body table td {
-      padding: 13px 14px; border-bottom: 1px solid var(--border-light);
+      padding: 14px 16px; border-bottom: 1px solid var(--border-light);
       vertical-align: top; color: #334155;
+      transition: background 0.2s ease;
     }
-    .article-body table tr:hover { background: #f8fafc; }
+    .article-body table tr:hover td { background: #f8fafc; }
     .article-body table tr:last-child td { border-bottom: none; }
 
     /* Código */
     .article-body pre {
       background: #0f172a; color: #f1f5f9;
-      padding: 1.5rem; border-radius: 6px;
+      padding: 1.5rem; border-radius: 8px;
       overflow-x: auto; font-family: 'JetBrains Mono', monospace;
       font-size: 0.84rem; line-height: 1.65; margin: 2rem 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      transition: box-shadow 0.3s ease;
+    }
+    .article-body pre:hover {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 24px rgba(15,23,42,0.15);
     }
     .article-body code {
       font-family: 'JetBrains Mono', monospace;
-      background: #f1f5f9; padding: 2px 6px; border-radius: 3px;
+      background: #f1f5f9; padding: 2px 6px; border-radius: 4px;
       font-size: 0.86em; color: #0f172a;
+      transition: background 0.2s ease;
     }
+    .article-body code:hover { background: #e2e8f0; }
     .article-body pre code { background: transparent; padding: 0; color: inherit; }
 
     /* Listas */
-    .article-body ul, .article-body ol {
-      margin: 1.5rem 0 1.5rem 1.6rem;
-    }
+    .article-body ul, .article-body ol { margin: 1.5rem 0 1.5rem 1.6rem; }
     .article-body li { margin-bottom: 0.55rem; }
 
-    /* Boxes especiales */
+    /* Boxes */
     .article-body .note-box,
     .article-body .tip-box,
     .article-body .warning-box {
       margin: 2.2rem 0; padding: 1.3rem 1.6rem;
-      border-radius: 4px; font-size: 1.05rem;
+      border-radius: 6px; font-size: 1.05rem;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
     .article-body .note-box { background: #f0f9ff; border-left: 4px solid #0284c7; }
     .article-body .tip-box { background: #f0fdf4; border-left: 4px solid #16a34a; }
     .article-body .warning-box { background: #fff7ed; border-left: 4px solid #ea580c; }
+    .article-body .note-box:hover,
+    .article-body .tip-box:hover,
+    .article-body .warning-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    }
 
-    /* Sidebar */
+    /* ========== SIDEBAR ========== */
     .article-sidebar {
       position: sticky; top: 92px;
       align-self: start;
       max-height: calc(100vh - 120px);
-      overflow-y: auto; padding-right: 6px;
+      overflow-y: auto; padding-right: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
     }
+    .article-sidebar::-webkit-scrollbar { width: 5px; }
+    .article-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .article-sidebar::-webkit-scrollbar-thumb {
+      background: #cbd5e1; border-radius: 10px;
+    }
+    .article-sidebar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
     @media (max-width: 980px) {
       .article-sidebar { position: static; max-height: none; }
     }
+
     .sidebar-section {
       margin-bottom: 36px;
       border-top: 2px solid var(--nyt-black);
@@ -591,91 +696,218 @@ function generateNewsHtmlTemplate({
       font-family: 'Inter', sans-serif;
       font-size: 0.78rem; font-weight: 800;
       text-transform: uppercase; letter-spacing: 0.07em;
-      color: var(--nyt-black); margin-bottom: 14px;
+      color: var(--nyt-black); margin-bottom: 16px;
     }
 
     /* TOC */
     .toc-list { list-style: none; }
     .toc-link {
-      display: block; padding: 6px 10px;
+      display: block; padding: 7px 12px;
       font-family: 'Inter', sans-serif;
       font-size: 0.82rem; color: var(--text-muted);
-      text-decoration: none; border-left: 2px solid transparent;
-      transition: all 0.18s; line-height: 1.4;
+      text-decoration: none; border-left: 2.5px solid transparent;
+      border-radius: 0 4px 4px 0;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      line-height: 1.4;
     }
-    .toc-link:hover { color: var(--nyt-black); background: var(--bg-sidebar); }
+    .toc-link:hover {
+      color: var(--nyt-black);
+      background: var(--bg-sidebar);
+      border-left-color: #cbd5e1;
+    }
     .toc-link.active {
-      color: var(--nyt-black); border-left-color: var(--accent);
-      background: #fff7ed; font-weight: 600;
+      color: var(--nyt-black);
+      border-left-color: var(--accent);
+      background: #fff7ed;
+      font-weight: 600;
     }
     .toc-link.toc-h3 { padding-left: 22px; font-size: 0.78rem; }
     .toc-link.toc-h4 { padding-left: 32px; font-size: 0.74rem; }
 
-    /* Meta badges */
+    /* NEWSLETTER BOX */
+    .newsletter-box {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 22px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .newsletter-box:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    }
+    .newsletter-box h4 {
+      font-family: 'Merriweather', serif;
+      font-size: 1.1rem; font-weight: 800;
+      color: var(--nyt-black); margin-bottom: 8px;
+    }
+    .newsletter-box p {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.84rem; color: var(--text-muted);
+      margin-bottom: 16px; line-height: 1.5;
+    }
+    .newsletter-input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      background: #fff;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .newsletter-input:focus {
+      border-color: var(--nyt-black);
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+    }
+    .newsletter-input::placeholder { color: #94a3b8; }
+    .newsletter-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--nyt-black);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .newsletter-btn:hover:not(:disabled) {
+      background: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(234, 88, 12, 0.25);
+    }
+    .newsletter-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    .newsletter-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .newsletter-error {
+      color: var(--error);
+      font-size: 0.78rem;
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+      margin-top: 10px;
+      display: none;
+    }
+    .newsletter-success {
+      text-align: center;
+      padding: 18px 0 8px;
+      display: none;
+    }
+    .newsletter-success .check-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: #dcfce7;
+      color: var(--success);
+      margin-bottom: 12px;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes scaleIn {
+      from { transform: scale(0.6); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Meta row */
     .meta-row {
       display: flex; align-items: center; gap: 16px;
-      flex-wrap: wrap; margin: 28px 0 8px;
+      flex-wrap: wrap; margin: 28px 0 12px;
       font-family: 'Inter', sans-serif;
     }
     .oa-badge {
       display: inline-flex; align-items: center; gap: 6px;
       color: var(--open-access); font-weight: 600; font-size: 0.85rem;
+      transition: transform 0.2s ease;
     }
+    .oa-badge:hover { transform: scale(1.03); }
     .share-group { display: flex; gap: 8px; }
     .share-btn {
-      width: 34px; height: 34px; border-radius: 50%;
-      border: 1px solid var(--border-dark); background: #fff;
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1.5px solid var(--border-dark); background: #fff;
       color: var(--nyt-black); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .share-btn:hover { background: var(--bg-sidebar); border-color: var(--nyt-black); }
-    .share-btn svg { width: 14px; height: 14px; fill: currentColor; }
+    .share-btn:hover {
+      background: var(--nyt-black);
+      color: #fff;
+      border-color: var(--nyt-black);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.15);
+    }
+    .share-btn:active { transform: translateY(0); }
+    .share-btn svg { width: 14px; height: 14px; fill: currentColor; transition: fill 0.2s; }
 
     /* Citation */
     .citation-box {
-      margin-top: 48px; padding-top: 24px;
+      margin-top: 52px; padding-top: 28px;
       border-top: 1px solid var(--border-light);
       font-family: 'Inter', sans-serif;
-      font-size: 0.86rem; color: var(--text-muted); line-height: 1.6;
+      font-size: 0.86rem; color: var(--text-muted); line-height: 1.65;
     }
     .citation-box strong {
-      display: block; font-size: 0.75rem;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      color: var(--nyt-black); margin-bottom: 8px;
+      display: block; font-size: 0.74rem;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--nyt-black); margin-bottom: 10px;
     }
 
-    /* Audio player */
+    /* ========== AUDIO PLAYER ========== */
     .audio-player {
       position: fixed; bottom: 28px; right: 28px; z-index: 1000;
-      background: #fff; border: 1px solid var(--nyt-black);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.12);
-      padding: 10px 14px; display: flex; align-items: center; gap: 12px;
-      font-family: 'Inter', sans-serif; border-radius: 6px;
-      transition: all 0.25s;
+      background: #fff; border: 1.5px solid var(--nyt-black);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.12);
+      padding: 11px 15px; display: flex; align-items: center; gap: 12px;
+      font-family: 'Inter', sans-serif; border-radius: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .audio-player:hover {
+      box-shadow: 0 16px 40px rgba(0,0,0,0.16);
+      transform: translateY(-2px);
     }
     .audio-player.hidden { display: none; }
     .audio-btn {
-      width: 34px; height: 34px; border-radius: 50%;
-      border: 1px solid var(--border-dark); background: transparent;
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1.5px solid var(--border-dark); background: transparent;
       color: var(--nyt-black); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .audio-btn:hover { background: var(--bg-sidebar); }
+    .audio-btn:hover {
+      background: var(--nyt-black);
+      color: #fff;
+      border-color: var(--nyt-black);
+      transform: scale(1.06);
+    }
+    .audio-btn:active { transform: scale(0.96); }
     .audio-btn svg { width: 14px; height: 14px; fill: currentColor; }
     .audio-status {
       font-size: 0.72rem; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.05em;
     }
     .audio-progress {
-      width: 110px; height: 3px; background: var(--border-light); margin-top: 5px;
+      width: 110px; height: 3px; background: var(--border-light); 
+      margin-top: 6px; border-radius: 2px; overflow: hidden;
     }
     .audio-progress-bar {
       height: 100%; background: var(--accent); width: 0%;
-      transition: width 0.1s linear;
+      transition: width 0.12s linear;
+      border-radius: 2px;
     }
 
-    /* Footer */
+    /* ========== FOOTER ========== */
     .footer {
       border-top: 1px solid var(--border-light);
       background: #fff; padding: 56px 24px 36px; margin-top: 60px;
@@ -695,22 +927,49 @@ function generateNewsHtmlTemplate({
       font-size: 1.35rem; font-weight: 900; color: var(--nyt-black);
       margin-bottom: 12px;
     }
-    .footer-desc { font-size: 0.86rem; color: var(--text-muted); max-width: 340px; }
-    .footer-social { display: flex; gap: 18px; margin-top: 18px; }
-    .footer-social a { color: var(--nyt-black); }
+    .footer-desc { font-size: 0.86rem; color: var(--text-muted); max-width: 340px; line-height: 1.6; }
+    .footer-social { display: flex; gap: 16px; margin-top: 20px; }
+    .footer-social a {
+      color: var(--nyt-black);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+    }
+    .footer-social a:hover {
+      color: var(--accent);
+      transform: translateY(-3px);
+    }
     .footer-bottom {
       display: flex; justify-content: space-between; align-items: center;
       font-size: 0.75rem; color: var(--text-muted);
       max-width: 1200px; margin: 0 auto; flex-wrap: wrap; gap: 12px;
     }
-    .footer-bottom-links { display: flex; gap: 16px; }
-    .footer-bottom-links a { color: var(--text-muted); text-decoration: none; }
+    .footer-bottom-links { display: flex; gap: 18px; }
+    .footer-bottom-links a {
+      color: var(--text-muted); text-decoration: none;
+      transition: color 0.25s ease;
+      position: relative;
+    }
+    .footer-bottom-links a::after {
+      content: '';
+      position: absolute; bottom: -2px; left: 0;
+      width: 0; height: 1px; background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    .footer-bottom-links a:hover { color: var(--nyt-black); }
+    .footer-bottom-links a:hover::after { width: 100%; }
 
+    /* Responsive */
     @media (max-width: 768px) {
       .hero-header { height: 52vh; min-height: 340px; }
       .article-body { font-size: 1.05rem; }
-      .audio-player { bottom: 16px; right: 16px; padding: 8px 12px; }
+      .audio-player { bottom: 16px; right: 16px; padding: 9px 12px; }
       .nav-logo-text { display: none; }
+    }
+
+    /* Focus visible global */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
     }
   </style>
 
@@ -725,7 +984,7 @@ function generateNewsHtmlTemplate({
 <body>
   <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
 
-  <header class="site-header">
+  <header class="site-header" id="siteHeader">
     <nav class="nav-minimal">
       <a href="/" class="nav-logo">
         <img src="${logo}" alt="Logo" class="nav-logo-img">
@@ -744,13 +1003,13 @@ function generateNewsHtmlTemplate({
     <article class="article-main">
       <div class="meta-row">
         <div class="share-group">
-          <button class="share-btn" onclick="shareOnTwitter()" title="Twitter">
+          <button class="share-btn" onclick="shareOnTwitter()" title="Twitter" aria-label="Share on Twitter">
             <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
           </button>
-          <button class="share-btn" onclick="shareOnFacebook()" title="Facebook">
+          <button class="share-btn" onclick="shareOnFacebook()" title="Facebook" aria-label="Share on Facebook">
             <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
           </button>
-          <button class="share-btn" onclick="shareOnLinkedIn()" title="LinkedIn">
+          <button class="share-btn" onclick="shareOnLinkedIn()" title="LinkedIn" aria-label="Share on LinkedIn">
             <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
           </button>
         </div>
@@ -780,6 +1039,29 @@ function generateNewsHtmlTemplate({
         </ul>
       </div>` : ''}
 
+      <!-- NEWSLETTER -->
+      <div class="sidebar-section">
+        <div class="newsletter-box" id="newsletterBox">
+          <h4>${t.newsletterTitle}</h4>
+          <p>${t.newsletterText}</p>
+          <div id="newsletterForm">
+            <input type="text" id="newsletterName" class="newsletter-input" placeholder="${t.namePlaceholder}" required autocomplete="name">
+            <input type="email" id="newsletterEmail" class="newsletter-input" placeholder="${t.emailPlaceholder}" required autocomplete="email">
+            <button id="newsletterSubmit" class="newsletter-btn">${t.newsletterBtn}</button>
+            <div id="newsletterError" class="newsletter-error"></div>
+          </div>
+          <div id="newsletterSuccess" class="newsletter-success">
+            <div class="check-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p style="font-family:'Inter',sans-serif; font-size:0.9rem; color:var(--success); font-weight:700; margin-bottom:4px;">${t.successTitle}</p>
+            <p style="font-family:'Inter',sans-serif; font-size:0.8rem; color:var(--text-muted);">${t.successMessage}</p>
+          </div>
+        </div>
+      </div>
+
       <div class="sidebar-section">
         <h3 class="sidebar-title">${isSpanish ? 'Sobre esta noticia' : 'About this news'}</h3>
         <p style="font-family:'Inter',sans-serif; font-size:0.85rem; color:var(--text-muted); line-height:1.55;">
@@ -793,18 +1075,18 @@ function generateNewsHtmlTemplate({
 
   <!-- Audio Player -->
   <div class="audio-player" id="audioPlayer">
-    <button class="audio-btn" id="playPauseBtn" title="${t.listen}">
+    <button class="audio-btn" id="playPauseBtn" title="${t.listen}" aria-label="${t.listen}">
       <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
     </button>
-    <button class="audio-btn" id="stopBtn" title="${t.stop}">
+    <button class="audio-btn" id="stopBtn" title="${t.stop}" aria-label="${t.stop}">
       <svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10"/></svg>
     </button>
     <div>
       <div class="audio-status" id="statusText">${t.listen}</div>
       <div class="audio-progress"><div class="audio-progress-bar" id="audioProgressBar"></div></div>
     </div>
-    <button class="audio-btn" id="closeAudioBtn" title="${t.closeAudio}" style="width:26px;height:26px;border:none;">
-      <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    <button class="audio-btn" id="closeAudioBtn" title="${t.closeAudio}" aria-label="${t.closeAudio}" style="width:28px;height:28px;border:none;">
+      <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" fill="none"/></svg>
     </button>
   </div>
 
@@ -814,16 +1096,16 @@ function generateNewsHtmlTemplate({
         <div class="footer-brand">${journalName}</div>
         <p class="footer-desc">${t.footerDesc}</p>
         <div class="footer-social">
-          <a href="${socialLinks.instagram}" title="Instagram">${socialIcons.instagram}</a>
-          <a href="${socialLinks.youtube}" title="YouTube">${socialIcons.youtube}</a>
-          <a href="${socialLinks.tiktok}" title="TikTok">${socialIcons.tiktok}</a>
-          <a href="${socialLinks.spotify}" title="Spotify">${socialIcons.spotify}</a>
+          <a href="${socialLinks.instagram}" title="Instagram" target="_blank" rel="noopener">${socialIcons.instagram}</a>
+          <a href="${socialLinks.youtube}" title="YouTube" target="_blank" rel="noopener">${socialIcons.youtube}</a>
+          <a href="${socialLinks.tiktok}" title="TikTok" target="_blank" rel="noopener">${socialIcons.tiktok}</a>
+          <a href="${socialLinks.spotify}" title="Spotify" target="_blank" rel="noopener">${socialIcons.spotify}</a>
         </div>
       </div>
       <div style="display:flex; justify-content:flex-end; align-items:flex-start;">
         <div>
           <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:8px;">${t.contact}</div>
-          <a href="mailto:contact@revistacienciasestudiantes.com" style="color:var(--nyt-black); text-decoration:none; font-weight:600;">
+          <a href="mailto:contact@revistacienciasestudiantes.com" style="color:var(--nyt-black); text-decoration:none; font-weight:600; transition:color 0.25s;">
             contact@revistacienciasestudiantes.com
           </a>
         </div>
@@ -839,7 +1121,14 @@ function generateNewsHtmlTemplate({
   </footer>
 
   <script>
-    // Progress bar + TOC highlight
+    // Header shadow on scroll
+    window.addEventListener('scroll', () => {
+      const header = document.getElementById('siteHeader');
+      if (window.scrollY > 20) header.classList.add('scrolled');
+      else header.classList.remove('scrolled');
+    });
+
+    // Progress + TOC
     window.addEventListener('scroll', () => {
       const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
       const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -869,7 +1158,129 @@ function generateNewsHtmlTemplate({
       window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(window.location.href), '_blank');
     }
 
-    // Text-to-Speech
+    // ========== NEWSLETTER FIREBASE ==========
+    document.addEventListener('DOMContentLoaded', function() {
+      const firebaseConfig = {
+        apiKey: "AIzaSyArr3LE_hQLZG0L5m9JND2OWVL8elnSyWk",
+        authDomain: "usuarios-rnce.firebaseapp.com",
+        projectId: "usuarios-rnce",
+        storageBucket: "usuarios-rnce.firebasestorage.app",
+        messagingSenderId: "688242139131",
+        appId: "1:688242139131:web:3a98663545e73110c3f55e",
+        measurementId: "G-K90MKB7BDP"
+      };
+      
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const CHECK_SUBSCRIPTION_URL = 'https://us-central1-usuarios-rnce.cloudfunctions.net/checkSubscription';
+      
+      const nameInput = document.getElementById('newsletterName');
+      const emailInput = document.getElementById('newsletterEmail');
+      const submitBtn = document.getElementById('newsletterSubmit');
+      const errorDiv = document.getElementById('newsletterError');
+      const formDiv = document.getElementById('newsletterForm');
+      const successDiv = document.getElementById('newsletterSuccess');
+      
+      if (!nameInput || !emailInput || !submitBtn) return;
+      
+      async function checkExistingSubscription(email) {
+        try {
+          const response = await fetch(CHECK_SUBSCRIPTION_URL + '?email=' + encodeURIComponent(email.toLowerCase()));
+          if (!response.ok) {
+            if (response.status === 404) return null;
+            throw new Error('HTTP ' + response.status);
+          }
+          const data = await response.json();
+          return data.subscription || null;
+        } catch (error) {
+          console.error('Error checking subscription:', error);
+          return null;
+        }
+      }
+      
+      submitBtn.addEventListener('click', async function() {
+        const nombre = nameInput.value.trim();
+        const correo = emailInput.value.trim();
+        
+        errorDiv.style.display = 'none';
+        
+        if (!nombre) {
+          errorDiv.textContent = '${t.invalidName}';
+          errorDiv.style.display = 'block';
+          return;
+        }
+        if (!correo || !correo.includes('@')) {
+          errorDiv.textContent = '${t.invalidEmail}';
+          errorDiv.style.display = 'block';
+          return;
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = '${t.subscribing}';
+        
+        try {
+          const existing = await checkExistingSubscription(correo);
+          
+          if (existing && existing.active) {
+            errorDiv.textContent = '${t.alreadySubscribed}';
+            errorDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = '${t.newsletterBtn}';
+            return;
+          }
+          
+          const emailNormalizado = correo.toLowerCase().trim();
+          const emailId = emailNormalizado.replace(/[^a-z0-9]/g, '_');
+          
+          const subscriptionData = {
+            email: emailNormalizado,
+            nombre: nombre,
+            idioma: '${lang}',
+            active: true,
+            preferences: {
+              areas: ['biologia', 'quimica', 'fisica', 'matematica', 'computacion', 'astronomia', 'geologia', 'medicina', 'ingenieria', 'ciencias_sociales', 'medio_ambiente', 'neurociencia', 'logros_estudiantiles'],
+              frecuencia: 'inmediato',
+              idioma: '${lang}',
+              notificaciones: {
+                nuevas_publicaciones: true,
+                convocatorias: true,
+                eventos: true,
+                oportunidades: false,
+                logros_estudiantiles: true
+              }
+            },
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            lastSentAt: null,
+            lastSentNews: [],
+            welcomeEmailSentAt: null,
+            welcomeEmailStatus: 'pending'
+          };
+          
+          await db.collection('newsletter').doc(emailId).set(subscriptionData);
+          
+          formDiv.style.display = 'none';
+          successDiv.style.display = 'block';
+          
+          setTimeout(() => {
+            formDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+            nameInput.value = '';
+            emailInput.value = '';
+          }, 5500);
+          
+        } catch (error) {
+          console.error('Error subscribing:', error);
+          errorDiv.textContent = '${t.generalError}';
+          errorDiv.style.display = 'block';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '${t.newsletterBtn}';
+        }
+      });
+    });
+
+    // ========== TEXT TO SPEECH ==========
     document.addEventListener('DOMContentLoaded', function() {
       const playPauseBtn = document.getElementById('playPauseBtn');
       const stopBtn = document.getElementById('stopBtn');
